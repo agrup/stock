@@ -14,8 +14,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # 👇 Acá se importa TU config, que sabe si es local o producción
 from src.app.config import get_database_url
 from src.infrastructure.sqlalchemy.base import Base
-# Importar todos los modelos que deben estar en las migraciones
-from src.repositories.models.users import UserModel
+# Importar todos los modelos para que Base los conozca y Alembic los vea
+from src.repositories.models import users, category, product
 
 
 # this is the Alembic Config object, which provides

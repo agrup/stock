@@ -30,11 +30,11 @@ back/
 │   ├── domain/            # Entidades y reglas de negocio
 │   │   └── entities/      # Entidades del dominio
 │   ├── infrastructure/    # Implementaciones de infraestructura
-│   │   └── firebase.py    # Configuración de Firebase
+│   │   
 │   ├── repositories/      # Capa de acceso a datos
-│   │   └── user_repository.py
+│   │   
 │   ├── use_cases/         # Casos de uso
-│   │   └── user/          # Casos de uso de usuarios
+│   │   
 │   └── main.py           # Punto de entrada
 ├── tests/                # Tests unitarios y de integración
 ├── .env.example         # Ejemplo de variables de entorno
