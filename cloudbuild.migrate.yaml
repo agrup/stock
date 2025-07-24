@@ -1,0 +1,28 @@
+# Este pipeline se ejecuta MANUALMENTE para aplicar migraciones de base de datos.
+# No construye ninguna imagen, solo utiliza una que ya existe en Artifact Registry.
+#
+# Uso:
+# gcloud builds submit . --config=cloudbuild.migrate.yaml \
+#   --substitutions=_APP_ENV=staging,_ENV_SUFFIX=-staging,_IMAGE_TAG=...
+#
+# Variables requeridas:
+# _APP_ENV: El entorno a migrar (ej: 'staging', 'production').
+# _ENV_SUFFIX: El sufijo del servicio/job (ej: '-staging', '').
+# _IMAGE_TAG: El tag de la imagen a usar (ej: el commit SHA de la versión a migrar).
+# _LOCATION, _PROJECT_ID, _REPOSITORY, _SERVICE_NAME: Las mismas que el pipeline principal.
+
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Run Database Migrations'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'jobs'
+      - 'execute'
+      - '${_SERVICE_NAME}${_ENV_SUFFIX}-migrator'
+      - '--region'
+      - '${_LOCATION}'
+      - '--wait'
+      - '--update-secrets=DATABASE_URL=${_APP_ENV}-database-url:latest'
+      - '--args=alembic,upgrade,head'
+      - '--image=${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${_IMAGE_TAG}'

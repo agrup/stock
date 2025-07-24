@@ -1,0 +1,5 @@
+# Ignorar todo excepto el código fuente principal y las dependencias.
+*
+!src
+!lib
+!requirements.txt

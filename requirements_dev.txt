@@ -1,0 +1,10 @@
+black
+flake8
+pytest
+pre-commit
+pytest
+pytest-cov
+dotenv-cli
+mypy
+bandit
+httpx

@@ -1,0 +1,59 @@
+steps:
+  # Build the container image using the final stage
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Build
+    args: [
+      'build',
+      # Usamos Artifact Registry en lugar de GCR
+      '-t', '${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA',
+      '--target=final',  # <── ESTA ES LA CLAVE PARA NO INCLUIR DEV DEPS
+      # Habilitamos la caché para acelerar builds futuros
+      '--cache-from', '${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:latest',
+      '.'
+    ]
+
+  # Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Push
+    waitFor: ['Build']
+    args: ['push', '${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA']
+
+  # Etiquetamos la imagen recién subida como 'latest' para que sirva de caché para el próximo build
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: Tag as latest
+    entrypoint: 'gcloud'
+    waitFor: ['Push']
+    args:
+      - 'artifacts'
+      - 'docker'
+      - 'tags'
+      - 'add'
+      - '${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:latest'
+
+  # Despliega la imagen a Cloud Run. El servicio de destino y la configuración se adaptan al entorno.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    id: Deploy
+    waitFor: ['Tag as latest']
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}${_ENV_SUFFIX}' # Nombre del servicio dinámico (ej: 'my-service-staging')
+      - '--image'
+      - '${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '--region'
+      - ${_LOCATION}
+      - '--project'
+      - $_PROJECT_ID
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      # Inyectamos el secreto y el archivo de variables de entorno correspondientes al ambiente.
+      - '--update-secrets=DATABASE_URL=${_APP_ENV}-database-url:latest'
+      - '--env-vars-file=env.${_APP_ENV}.yaml' # Archivo de entorno dinámico (ej: 'env.staging.yaml')
+
+images:
+- '${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:$COMMIT_SHA'

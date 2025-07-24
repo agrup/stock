@@ -1,0 +1,22 @@
+services:
+  fastapi-app:
+    container_name: ${SERVICE_NAME}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "${APP_PORT}:8080"   # localhost:8000 redirige al puerto interno 8080
+    env_file:
+       - ${ENV_FILE:-.env}
+    volumes:
+      - ./.:/app/ # Monta todo el directorio actual. Suficiente para el hot-reload.
+    networks:
+      - ${DOCKER_NETWORK}      
+    command: >
+      uvicorn src.app.main:app --host 0.0.0.0 --port 8080 --reload
+
+networks:
+  enviame:
+    name: ${DOCKER_NETWORK}
+    external: true      

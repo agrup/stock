@@ -1,0 +1,12 @@
+### Crear usuario vía SQL
+POST http://localhost:8080/v1/users/sql
+Content-Type: application/json
+
+{
+  "name": "Agustin",
+  "email": "agus@example.com"
+}
+
+
+### Listar usuarios vía SQL
+GET http://localhost:8080/v1/users/sql

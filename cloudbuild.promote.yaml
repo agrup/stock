@@ -1,0 +1,50 @@
+# ADVERTENCIA: Este pipeline despliega la imagen con la etiqueta 'latest'.
+# Este enfoque es propenso a errores (race conditions) y no se recomienda para producción.
+# Despliega la imagen con la etiqueta _IMAGE_TAG, que por defecto es 'latest'.
+#
+# Uso:
+# gcloud builds submit . --config=cloudbuild.promote.yaml \
+#   --substitutions=_LOCATION=...,_PROJECT_ID=...,...
+#
+# Variables requeridas:
+# _LOCATION, _PROJECT_ID, _REPOSITORY, _SERVICE_NAME: Las mismas que el pipeline principal.
+# _IMAGE_TAG (opcional): El tag de la imagen a desplegar. Por defecto es 'latest'.
+
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Verify Image Digest Before Deploy'
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        echo "################################################################################"
+        echo "## ⚠️  VERIFICACIÓN REQUERIDA ANTES DE DESPLEGAR A PRODUCCIÓN ⚠️ ##"
+        echo "################################################################################"
+        echo "Se va a desplegar la imagen con la etiqueta: '${_IMAGE_TAG}'"
+        echo "Verifica que el siguiente 'digest' corresponde a la versión probada en staging:"
+        gcloud artifacts docker images describe '${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${_IMAGE_TAG}' --format='value(image_summary.digest)'
+        echo "################################################################################"
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'Deploy to Production'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}' # Sin sufijo para producción
+      - '--image'
+      - '${_LOCATION}-docker.pkg.dev/${_PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${_IMAGE_TAG}'
+      - '--region'
+      - '${_LOCATION}'
+      - '--project'
+      - '${_PROJECT_ID}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--update-secrets=DATABASE_URL=production-database-url:latest'
+      - '--env-vars-file=env.production.yaml'
+
+substitutions:
+  # Por defecto, se usará la etiqueta 'latest' si no se especifica otra.
+  _IMAGE_TAG: 'latest'

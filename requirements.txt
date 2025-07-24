@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+sqlalchemy>=2.0
+alembic # aqui para poder correr en el deploy
+pymysql
+pydantic
+pydantic[email]

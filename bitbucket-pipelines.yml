@@ -1,0 +1,93 @@
+image: python:3.11-slim
+
+definitions:
+  caches:
+    pip:
+      key:
+        files:
+          # La caché se invalida solo si este archivo cambia
+          - requirements_dev.txt
+      path: ~/.cache/pip
+
+  steps:
+    - step: &install
+        name: 📦 Install dependencies
+        caches:
+          - pip
+        script:
+          - pip install -r requirements_dev.txt
+
+    - step: &linter
+        name: 🧹 Lint with Ruff
+        caches:
+          - pip
+        script:
+          # Usamos Ruff como recomienda el estándar por su velocidad
+          - pip install ruff
+          - ruff check src/ tests/
+
+    - step: &bandit
+        name: 🔒 Bandit security scan
+        caches:
+          - pip
+        script:
+          # Generamos el reporte en JSON para SonarQube
+          - pip install bandit
+          - bandit -r src -f json -o bandit_report.json
+        artifacts:
+          - bandit_report.json
+
+    - step: &tests
+        name: 🧪 Run tests and generate coverage
+        caches:
+          - pip
+        script:
+          # Preparamos el entorno de test si es necesario
+          - |
+            if [ -f .env.test ]; then
+              echo "Loading .env.test for tests"
+              export $(cat .env.test | xargs)
+            fi
+          # Generamos reportes de test y cobertura en formato XML para SonarQube
+          - pytest -v --cov=src --cov-report=xml:test-results/coverage.xml --junitxml=test-results/unit.xml
+        artifacts:
+          - test-results/**
+
+    - step: &sonarqube
+        name: 📊 SonarQube analysis & quality-gate
+        script:
+          - pipe: sonarsource/sonarqube-scan:3.1.0
+            variables:
+              SONAR_HOST_URL: ${SONAR_HOST_URL}
+              SONAR_TOKEN: ${BITBUCKET_SONAR_TOKEN}
+              SONAR_SCANNER_OPTS: >-
+                -Dsonar.projectKey=${BITBUCKET_REPO_SLUG}
+                -Dsonar.projectName=${BITBUCKET_REPO_SLUG}
+                -Dsonar.sources=src
+                -Dsonar.tests=tests
+                -Dsonar.python.coverage.reportPaths=test-results/coverage.xml
+                -Dsonar.python.bandit.reportPaths=bandit_report.json
+          - pipe: sonarsource/sonarqube-quality-gate:1.2.1
+            variables:
+              SONAR_TOKEN: ${BITBUCKET_SONAR_TOKEN}
+
+clone:
+  depth: full # Necesario para un análisis preciso de SonarQube
+
+pipelines:
+  pull-requests:
+    '**':
+      - step: *install
+      - parallel:
+          - step: *linter
+          - step: *tests
+          - step: *bandit
+      - step: *sonarqube
+  branches:
+    '{stage}': # Puedes añadir 'master' o 'main' aquí si también lo necesitas
+      - step: *install
+      - parallel:
+          - step: *linter
+          - step: *tests
+          - step: *bandit
+      - step: *sonarqube

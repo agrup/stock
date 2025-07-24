@@ -1,0 +1,10 @@
+.env
+*pyc
+service-account.json
+.directory
+__pycache__
+
+.vscode/
+.pytest_cache/
+
+.db
