@@ -10,3 +10,8 @@ class ProductAlreadyExists(AppException):
 class CategoryNotFound(AppException):
     def __init__(self):
         super().__init__("La categoría especificada no existe", status_code=404)
+
+
+class ProductNotFound(AppException):
+    def __init__(self):
+        super().__init__("Producto no encontrado", status_code=404)

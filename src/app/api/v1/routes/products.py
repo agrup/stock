@@ -4,12 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from src.app.dependencies.product_use_cases import (
     get_all_products_use_case,
     get_create_product_use_case,
+    get_product_by_id_use_case,
 )
-from src.core.product.exceptions import CategoryNotFound, ProductAlreadyExists
+from src.core.product.exceptions import CategoryNotFound, ProductAlreadyExists, ProductNotFound
 from src.domain.product import Product
 from src.schemas.product import CreateProductSchema, ProductResponseSchema
 from src.use_cases.create_product import CreateProductUseCase
 from src.use_cases.get_all_products import GetAllProductsUseCase
+from src.use_cases.get_product_by_id import GetProductByIdUseCase
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -37,3 +39,15 @@ def get_all_products(
 ):
     products = use_case.execute()
     return products
+
+
+@router.get("/{product_id}", response_model=ProductResponseSchema)
+def get_product_by_id(
+    product_id: int,
+    use_case: GetProductByIdUseCase = Depends(get_product_by_id_use_case),
+):
+    try:
+        product = use_case.execute(product_id)
+        return product
+    except ProductNotFound as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)

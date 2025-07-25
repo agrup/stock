@@ -12,3 +12,6 @@ class ProductRepository(Protocol):
 
     def get_all(self) -> List[Product]:
         ...
+
+    def get_by_id(self, product_id: int) -> Optional[Product]:
+        ...

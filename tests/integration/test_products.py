@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.app.main import app
 from src.repositories.models.category import CategoryModel
+from src.repositories.models.product import ProductModel
 
 client = TestClient(app)
 
@@ -116,3 +117,39 @@ def test_get_all_products(
     assert len(data) == 1
     assert data[0]["name"] == product_data["name"]
     assert data[0]["sku"] == product_data["sku"]
+
+
+def test_get_product_by_id_success(
+    override_get_product_by_id_use_case,
+    db_session: Session,
+):
+    """Test getting a single product by its ID successfully."""
+    # Arrange: Create a category and a product
+    category = CategoryModel(name="Herramientas", description="Herramientas manuales")
+    db_session.add(category)
+    db_session.commit()
+
+    product = ProductModel(
+        name="Martillo", sku="MAR-001", category_id=category.id,
+        unit_of_measure="unidad", cost_price=12.0, sale_price=20.0,
+        min_stock=5, max_stock=25
+    )
+    db_session.add(product)
+    db_session.commit()
+
+    # Act
+    response = client.get(f"/v1/products/{product.id}")
+
+    # Assert
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == product.id
+    assert data["name"] == "Martillo"
+    assert data["sku"] == "MAR-001"
+
+
+def test_get_product_by_id_not_found(override_get_product_by_id_use_case):
+    """Test getting a non-existent product returns 404."""
+    response = client.get("/v1/products/9999")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Producto no encontrado"}

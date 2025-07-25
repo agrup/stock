@@ -6,6 +6,7 @@ from src.repositories.sqlalchemy_category_repository import SqlAlchemyCategoryRe
 from src.repositories.sqlalchemy_product_repository import SqlAlchemyProductRepository
 from src.use_cases.create_product import CreateProductUseCase
 from src.use_cases.get_all_products import GetAllProductsUseCase
+from src.use_cases.get_product_by_id import GetProductByIdUseCase
 
 
 def get_create_product_use_case(
@@ -21,3 +22,10 @@ def get_all_products_use_case(
 ) -> GetAllProductsUseCase:
     repo = SqlAlchemyProductRepository(session)
     return GetAllProductsUseCase(repo)
+
+
+def get_product_by_id_use_case(
+    session: Session = Depends(get_session),
+) -> GetProductByIdUseCase:
+    repo = SqlAlchemyProductRepository(session)
+    return GetProductByIdUseCase(repo)

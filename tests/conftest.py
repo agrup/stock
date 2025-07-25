@@ -11,6 +11,7 @@ from src.infrastructure.sqlalchemy.base import Base
 from src.app.dependencies.product_use_cases import (
     get_all_products_use_case,
     get_create_product_use_case,
+    get_product_by_id_use_case,
 )
 # from src.repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from src.repositories.sqlalchemy_category_repository import SqlAlchemyCategoryRepository
@@ -18,6 +19,7 @@ from src.repositories.sqlalchemy_product_repository import SqlAlchemyProductRepo
 # from src.use_cases.create_user import CreateUserUseCase
 from src.use_cases.create_product import CreateProductUseCase
 from src.use_cases.get_all_products import GetAllProductsUseCase
+from src.use_cases.get_product_by_id import GetProductByIdUseCase
 
 # Importa todos los modelos para que Base los conozca
 from src.repositories.models import category, product
@@ -101,5 +103,15 @@ def override_get_all_products_use_case(product_repository):
         return GetAllProductsUseCase(product_repository)
 
     app.dependency_overrides[get_all_products_use_case] = _override
+    yield _override
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def override_get_product_by_id_use_case(product_repository):
+    def _override():
+        return GetProductByIdUseCase(product_repository)
+
+    app.dependency_overrides[get_product_by_id_use_case] = _override
     yield _override
     app.dependency_overrides.clear()

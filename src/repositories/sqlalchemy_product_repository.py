@@ -32,3 +32,9 @@ class SqlAlchemyProductRepository(ProductRepository):
         return [
             Product.model_validate(product) for product in product_models
         ]
+
+    def get_by_id(self, product_id: int) -> Optional[Product]:
+        product_model = self.session.query(ProductModel).filter_by(id=product_id).first()
+        if not product_model:
+            return None
+        return Product.model_validate(product_model)
