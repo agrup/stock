@@ -7,16 +7,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.app.main import app
 from src.infrastructure.sqlalchemy.base import Base
-from src.app.dependencies.user_use_cases import get_sql_user_use_case
+# from src.app.dependencies.user_use_cases import get_sql_user_use_case # NOTE: This file does not exist yet
 from src.app.dependencies.product_use_cases import get_create_product_use_case
-from src.repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
+# from src.repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from src.repositories.sqlalchemy_category_repository import SqlAlchemyCategoryRepository
 from src.repositories.sqlalchemy_product_repository import SqlAlchemyProductRepository
-from src.use_cases.create_user import CreateUserUseCase
+# from src.use_cases.create_user import CreateUserUseCase
 from src.use_cases.create_product import CreateProductUseCase
 
 # Importa todos los modelos para que Base los conozca
-from src.repositories.models import users, category, product
+from src.repositories.models import category, product
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -49,15 +49,15 @@ def sqlite_session():
         os.remove("./test.db")
 
 
-@pytest.fixture
-def override_sql_use_case(sqlite_session):
-    def _override():
-        repo = SqlAlchemyUserRepository(sqlite_session)
-        return CreateUserUseCase(repo)
-
-    app.dependency_overrides[get_sql_user_use_case] = _override
-    yield _override
-    app.dependency_overrides.clear()
+# @pytest.fixture
+# def override_sql_use_case(sqlite_session):
+#     def _override():
+#         repo = SqlAlchemyUserRepository(sqlite_session)
+#         return CreateUserUseCase(repo)
+#
+#     app.dependency_overrides[get_sql_user_use_case] = _override
+#     yield _override
+#     app.dependency_overrides.clear()
 
 
 @pytest.fixture

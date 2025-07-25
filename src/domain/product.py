@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Product(BaseModel):
@@ -12,3 +12,5 @@ class Product(BaseModel):
     min_stock: int = Field(ge=0)
     max_stock: int = Field(ge=0)
     category_id: int
+
+    model_config = ConfigDict(from_attributes=True)

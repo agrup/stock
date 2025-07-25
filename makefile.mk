@@ -43,7 +43,15 @@ shell:
 ## ───── Comandos de Test ─────
 # Corre los tests con pytest dentro del contenedor de desarrollo
 test:
-	$(MAKE) PROFILES=emulators up -d && $(COMPOSE) exec -e ENV_FILE=.env.test $(SERVICE) pytest -vv && $(MAKE) PROFILES=emulators down
+	@echo "🧪 Running tests..."
+	@$(COMPOSE) --env-file .env.test --profile emulators up -d
+	@echo "⏳ Waiting for service to be ready..."
+	@until $$(docker compose --env-file .env.test logs $(SERVICE) 2>&1 | grep -q "Application startup complete."); do sleep 1; done
+	@echo "✅ Service is ready!"
+	@$(COMPOSE) --env-file .env.test exec -e PYTHONPATH=/app $(SERVICE) pytest -vv; EXIT_CODE=$$?
+	@echo "🛑 Stopping test containers..."
+	@$(COMPOSE) --env-file .env.test --profile emulators down > /dev/null 2>&1
+	@exit $$EXIT_CODE
 
 ## ───── Comandos de Calidad de Código ─────
 
@@ -77,8 +85,8 @@ makemigration:
 	@if [ -z "$(msg)" ]; then \
 		echo "Falta el mensaje: make makemigration msg='mensaje'"; exit 1; \
 	fi; \
-	$(COMPOSE) --env-file $(ENV_FILE) exec -e PYTHONPATH=/app $(SERVICE) alembic revision --autogenerate -m "$(msg)" && \
-	sudo chown -R $(shell id -u):$(shell id -g) alembic/versions/
+	$(COMPOSE) --env-file $(ENV_FILE) exec -u $$(id -u):$$(id -g) -e PYTHONPATH=/app $(SERVICE) \
+	alembic revision --autogenerate -m "$(msg)"
 
 # Migración en producción (usa .env.production por defecto)
 migrate:
