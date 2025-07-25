@@ -16,3 +16,9 @@ class CategoryRepository(Protocol):
 
     def get_all(self) -> List[Category]:
         ...
+
+    def update(self, category_id: int, category_data: dict) -> Category:
+        ...
+
+    def delete(self, category_id: int) -> None:
+        ...

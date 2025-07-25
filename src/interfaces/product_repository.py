@@ -21,3 +21,6 @@ class ProductRepository(Protocol):
 
     def delete(self, product_id: int) -> None:
         ...
+
+    def get_by_category_id(self, category_id: int) -> List[Product]:
+        ...

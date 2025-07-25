@@ -54,3 +54,9 @@ class SqlAlchemyProductRepository(ProductRepository):
         product_model = self.session.query(ProductModel).filter_by(id=product_id).one()
         self.session.delete(product_model)
         self.session.commit()
+
+    def get_by_category_id(self, category_id: int) -> List[Product]:
+        product_models = self.session.query(ProductModel).filter_by(category_id=category_id).all()
+        return [
+            Product.model_validate(product) for product in product_models
+        ]

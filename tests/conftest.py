@@ -107,6 +107,9 @@ def override_category_use_cases(db_session):
     test_container = CategoryUseCasesContainer(session=db_session)
     app.dependency_overrides[category_container.create_category] = test_container.create_category
     app.dependency_overrides[category_container.get_all_categories] = test_container.get_all_categories
+    app.dependency_overrides[category_container.get_category_by_id] = test_container.get_category_by_id
+    app.dependency_overrides[category_container.update_category] = test_container.update_category
+    app.dependency_overrides[category_container.delete_category] = test_container.delete_category
 
     yield
     app.dependency_overrides.clear()
