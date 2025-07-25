@@ -10,7 +10,8 @@ client = TestClient(app)
 
 def test_create_product_success(override_product_use_cases, db_session: Session):
     """Test creating a product successfully."""
-    # Arrange: Primero, creamos una categoría para que el producto pueda asociarse a ella.
+    # Arrange: Primero, creamos una categoría
+    # para que el producto pueda asociarse a ella.
     category = CategoryModel(
         name="Electrónica", description="Dispositivos electrónicos"
     )

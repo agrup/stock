@@ -1,5 +1,3 @@
-import os
-import pytest
 from dotenv import load_dotenv
 from pathlib import Path
 import pytest
@@ -7,8 +5,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.app.main import app
 from src.infrastructure.sqlalchemy.base import Base
-
-# from src.app.dependencies.user_use_cases import get_sql_user_use_case # NOTE: This file does not exist yet
 from src.app.dependencies.category_use_cases import (
     CategoryUseCasesContainer,
     category_container,
@@ -18,26 +14,14 @@ from src.app.dependencies.product_use_cases import (
     product_container,
 )
 
-# from src.repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
-from src.repositories.sqlalchemy_category_repository import SqlAlchemyCategoryRepository
-from src.repositories.sqlalchemy_product_repository import SqlAlchemyProductRepository
-
-# from src.use_cases.create_user import CreateUserUseCase
-
-# Importa todos los modelos para que Base los conozca
-from src.repositories.models import category, product
-
 
 @pytest.fixture(scope="session", autouse=True)
 def load_test_env():
     env_path = Path(".env.test")
     if env_path.exists():
         load_dotenv(dotenv_path=env_path, override=True)
-        print(f"[pytest] ✅ Variables de entorno cargadas desde {env_path}")
     else:
-        print(
-            f"[pytest] ⚠️ Archivo {env_path} no encontrado. Se omite la carga de entorno."
-        )
+        pass
 
 
 @pytest.fixture(scope="session")
@@ -69,18 +53,6 @@ def db_session(db_engine):
         connection.close()
 
 
-@pytest.fixture(scope="function")
-def category_repository(db_session):
-    """Fixture para el repositorio de categorías."""
-    return SqlAlchemyCategoryRepository(db_session)
-
-
-@pytest.fixture(scope="function")
-def product_repository(db_session):
-    """Fixture para el repositorio de productos."""
-    return SqlAlchemyProductRepository(db_session)
-
-
 # @pytest.fixture
 # def override_sql_use_case(sqlite_session):
 #     def _override():
@@ -100,21 +72,14 @@ def override_product_use_cases(db_session):
     del contenedor de producción con el método correspondiente del de prueba.
     """
     test_container = ProductUseCasesContainer(session=db_session)
-    app.dependency_overrides[product_container.create_product] = (
-        test_container.create_product
-    )
-    app.dependency_overrides[product_container.get_all_products] = (
-        test_container.get_all_products
-    )
-    app.dependency_overrides[product_container.get_product_by_id] = (
-        test_container.get_product_by_id
-    )
-    app.dependency_overrides[product_container.update_product] = (
-        test_container.update_product
-    )
-    app.dependency_overrides[product_container.delete_product] = (
-        test_container.delete_product
-    )
+    overrides = {
+        product_container.create_product: test_container.create_product,
+        product_container.get_all_products: test_container.get_all_products,
+        product_container.get_product_by_id: test_container.get_product_by_id,
+        product_container.update_product: test_container.update_product,
+        product_container.delete_product: test_container.delete_product,
+    }
+    app.dependency_overrides.update(overrides)
 
     yield
     app.dependency_overrides.clear()
@@ -126,21 +91,14 @@ def override_category_use_cases(db_session):
     Fixture para sobreescribir los proveedores de casos de uso de categorías.
     """
     test_container = CategoryUseCasesContainer(session=db_session)
-    app.dependency_overrides[category_container.create_category] = (
-        test_container.create_category
-    )
-    app.dependency_overrides[category_container.get_all_categories] = (
-        test_container.get_all_categories
-    )
-    app.dependency_overrides[category_container.get_category_by_id] = (
-        test_container.get_category_by_id
-    )
-    app.dependency_overrides[category_container.update_category] = (
-        test_container.update_category
-    )
-    app.dependency_overrides[category_container.delete_category] = (
-        test_container.delete_category
-    )
+    overrides = {
+        category_container.create_category: test_container.create_category,
+        category_container.get_all_categories: test_container.get_all_categories,
+        category_container.get_category_by_id: test_container.get_category_by_id,
+        category_container.update_category: test_container.update_category,
+        category_container.delete_category: test_container.delete_category,
+    }
+    app.dependency_overrides.update(overrides)
 
     yield
     app.dependency_overrides.clear()

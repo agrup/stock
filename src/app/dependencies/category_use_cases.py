@@ -2,7 +2,9 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from src.infrastructure.sqlalchemy.session import get_session
-from src.repositories.sqlalchemy_category_repository import SqlAlchemyCategoryRepository
+from src.repositories.sqlalchemy_category_repository import (
+    SqlAlchemyCategoryRepository,
+)
 from src.use_cases.create_category import CreateCategoryUseCase
 from src.use_cases.get_all_categories import GetAllCategoriesUseCase
 from src.use_cases.get_category_by_id import GetCategoryByIdUseCase

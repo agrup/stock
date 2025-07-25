@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from src.app.main import app
-from src.repositories.models.product import ProductModel
 
 client = TestClient(app)
 

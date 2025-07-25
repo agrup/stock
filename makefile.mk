@@ -67,17 +67,17 @@ test:
 
 # Aplica black (formatea código)
 format:
-	$(COMPOSE) exec $(SERVICE) black src/ tests/
+	$(COMPOSE) run --rm $(SERVICE) black src/ tests/
 
 # Revisión de código con flake8
 lint:
-	$(COMPOSE) exec $(SERVICE) flake8 src/ tests/
+	$(COMPOSE) run --rm $(SERVICE) flake8 src/ tests/
 
 typecheck:
-	$(COMPOSE) exec $(SERVICE) mypy src/
+	$(COMPOSE) run --rm $(SERVICE) mypy src/
 
 scan:
-	$(COMPOSE) exec $(SERVICE) bandit -r src/	
+	$(COMPOSE) run --rm $(SERVICE) bandit -r src/
 
 bash:
 	$(COMPOSE) exec $(SERVICE) bash

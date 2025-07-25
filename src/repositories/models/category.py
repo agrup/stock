@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.infrastructure.sqlalchemy.base import Base
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.repositories.models.product import ProductModel
 
 
 class CategoryModel(Base):
