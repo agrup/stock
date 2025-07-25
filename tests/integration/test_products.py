@@ -152,3 +152,38 @@ def test_get_product_by_id_not_found(override_product_use_cases):
     response = client.get("/v1/products/9999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Producto no encontrado"}
+
+
+def test_update_product_success(
+    override_product_use_cases, db_session: Session
+):
+    """Test updating a product successfully."""
+    # Arrange: Create a category and a product
+    category = CategoryModel(name="Lácteos", description="Productos lácteos")
+    db_session.add(category)
+    db_session.commit()
+    product = ProductModel(
+        name="Leche Entera", sku="LE-001", category_id=category.id,
+        unit_of_measure="litro", cost_price=0.8, sale_price=1.2,
+        min_stock=10, max_stock=50
+    )
+    db_session.add(product)
+    db_session.commit()
+
+    update_data = {"name": "Leche Entera (1L)", "sale_price": 1.25}
+
+    # Act
+    response = client.put(f"/v1/products/{product.id}", json=update_data)
+
+    # Assert
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == "Leche Entera (1L)"
+    assert data["sale_price"] == 1.25
+    assert data["sku"] == "LE-001" # SKU should not change if not provided
+
+def test_update_product_not_found(override_product_use_cases):
+    """Test that updating a non-existent product returns 404."""
+    response = client.put("/v1/products/9999", json={"name": "Producto Fantasma"})
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Producto no encontrado"}

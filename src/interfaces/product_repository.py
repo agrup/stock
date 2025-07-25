@@ -15,3 +15,6 @@ class ProductRepository(Protocol):
 
     def get_by_id(self, product_id: int) -> Optional[Product]:
         ...
+
+    def update(self, product_id: int, product_data: dict) -> Product:
+        ...

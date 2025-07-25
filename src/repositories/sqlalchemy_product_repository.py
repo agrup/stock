@@ -38,3 +38,14 @@ class SqlAlchemyProductRepository(ProductRepository):
         if not product_model:
             return None
         return Product.model_validate(product_model)
+
+    def update(self, product_id: int, product_data: dict) -> Product:
+        product_model = self.session.query(ProductModel).filter_by(id=product_id).one()
+
+        for key, value in product_data.items():
+            if value is not None:
+                setattr(product_model, key, value)
+
+        self.session.commit()
+        self.session.refresh(product_model)
+        return Product.model_validate(product_model)

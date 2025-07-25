@@ -6,10 +6,11 @@ from src.app.dependencies.product_use_cases import (
 )
 from src.core.product.exceptions import CategoryNotFound, ProductAlreadyExists, ProductNotFound
 from src.domain.product import Product
-from src.schemas.product import CreateProductSchema, ProductResponseSchema
+from src.schemas.product import CreateProductSchema, ProductResponseSchema, UpdateProductSchema
 from src.use_cases.create_product import CreateProductUseCase
 from src.use_cases.get_all_products import GetAllProductsUseCase
 from src.use_cases.get_product_by_id import GetProductByIdUseCase
+from src.use_cases.update_product import UpdateProductUseCase
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -48,4 +49,20 @@ def get_product_by_id(
         product = use_case.execute(product_id)
         return product
     except ProductNotFound as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.put("/{product_id}", response_model=ProductResponseSchema)
+def update_product(
+    product_id: int,
+    product_data: UpdateProductSchema,
+    use_case: UpdateProductUseCase = Depends(product_container.update_product),
+):
+    try:
+        # Usamos exclude_unset para no enviar campos None al caso de uso
+        updated_product = use_case.execute(
+            product_id, product_data.model_dump(exclude_unset=True)
+        )
+        return updated_product
+    except (ProductNotFound, CategoryNotFound, ProductAlreadyExists) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)

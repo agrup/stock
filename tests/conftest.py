@@ -91,6 +91,7 @@ def override_product_use_cases(db_session):
     app.dependency_overrides[product_container.create_product] = test_container.create_product
     app.dependency_overrides[product_container.get_all_products] = test_container.get_all_products
     app.dependency_overrides[product_container.get_product_by_id] = test_container.get_product_by_id
+    app.dependency_overrides[product_container.update_product] = test_container.update_product
 
     yield
     app.dependency_overrides.clear()
