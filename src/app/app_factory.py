@@ -5,6 +5,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.core.exceptions import AppException
 from src.app.api.v1.router import router
+
+
 def create_app() -> FastAPI:
     app = FastAPI(title="My Clean App")
 

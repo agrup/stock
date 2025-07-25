@@ -9,6 +9,7 @@ from src.repositories.models.product import ProductModel
 
 class SqlAlchemyProductRepository(ProductRepository):
     """Implementación concreta del repositorio de productos con SQLAlchemy."""
+
     def __init__(self, session: Session):
         self.session = session
 
@@ -20,21 +21,19 @@ class SqlAlchemyProductRepository(ProductRepository):
         return Product.model_validate(product_model)
 
     def get_by_sku(self, sku: str) -> Optional[Product]:
-        product_model = (
-            self.session.query(ProductModel).filter_by(sku=sku).first()
-        )
+        product_model = self.session.query(ProductModel).filter_by(sku=sku).first()
         if not product_model:
             return None
         return Product.model_validate(product_model)
 
     def get_all(self) -> List[Product]:
         product_models = self.session.query(ProductModel).all()
-        return [
-            Product.model_validate(product) for product in product_models
-        ]
+        return [Product.model_validate(product) for product in product_models]
 
     def get_by_id(self, product_id: int) -> Optional[Product]:
-        product_model = self.session.query(ProductModel).filter_by(id=product_id).first()
+        product_model = (
+            self.session.query(ProductModel).filter_by(id=product_id).first()
+        )
         if not product_model:
             return None
         return Product.model_validate(product_model)
@@ -56,7 +55,7 @@ class SqlAlchemyProductRepository(ProductRepository):
         self.session.commit()
 
     def get_by_category_id(self, category_id: int) -> List[Product]:
-        product_models = self.session.query(ProductModel).filter_by(category_id=category_id).all()
-        return [
-            Product.model_validate(product) for product in product_models
-        ]
+        product_models = (
+            self.session.query(ProductModel).filter_by(category_id=category_id).all()
+        )
+        return [Product.model_validate(product) for product in product_models]

@@ -9,6 +9,7 @@ from src.repositories.models.category import CategoryModel
 
 class SqlAlchemyCategoryRepository(CategoryRepository):
     """Implementación concreta del repositorio de categorías con SQLAlchemy."""
+
     def __init__(self, session: Session):
         self.session = session
 
@@ -16,7 +17,8 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
         category_model = (
             self.session.query(CategoryModel)
             .options(joinedload(CategoryModel.products))
-            .filter_by(id=category_id).first()
+            .filter_by(id=category_id)
+            .first()
         )
         if not category_model:
             return None
@@ -37,12 +39,12 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
 
     def get_all(self) -> List[Category]:
         category_models = self.session.query(CategoryModel).all()
-        return [
-            Category.model_validate(category) for category in category_models
-        ]
+        return [Category.model_validate(category) for category in category_models]
 
     def update(self, category_id: int, category_data: dict) -> Category:
-        category_model = self.session.query(CategoryModel).filter_by(id=category_id).one()
+        category_model = (
+            self.session.query(CategoryModel).filter_by(id=category_id).one()
+        )
         for key, value in category_data.items():
             if value is not None:
                 setattr(category_model, key, value)
@@ -51,6 +53,8 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
         return Category.model_validate(category_model)
 
     def delete(self, category_id: int) -> None:
-        category_model = self.session.query(CategoryModel).filter_by(id=category_id).one()
+        category_model = (
+            self.session.query(CategoryModel).filter_by(id=category_id).one()
+        )
         self.session.delete(category_model)
         self.session.commit()

@@ -13,4 +13,6 @@ class CategoryNotFound(AppException):
 
 class CategoryInUseError(AppException):
     def __init__(self):
-        super().__init__("La categoría está en uso y no puede ser eliminada", status_code=409)
+        super().__init__(
+            "La categoría está en uso y no puede ser eliminada", status_code=409
+        )

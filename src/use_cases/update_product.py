@@ -1,11 +1,17 @@
-from src.core.product.exceptions import ProductNotFound, CategoryNotFound, ProductAlreadyExists
+from src.core.product.exceptions import (
+    ProductNotFound,
+    CategoryNotFound,
+    ProductAlreadyExists,
+)
 from src.domain.product import Product
 from src.interfaces.product_repository import ProductRepository
 from src.interfaces.category_repository import CategoryRepository
 
 
 class UpdateProductUseCase:
-    def __init__(self, product_repo: ProductRepository, category_repo: CategoryRepository):
+    def __init__(
+        self, product_repo: ProductRepository, category_repo: CategoryRepository
+    ):
         self.product_repo = product_repo
         self.category_repo = category_repo
 
@@ -16,7 +22,9 @@ class UpdateProductUseCase:
             raise ProductNotFound()
 
         # 2. Si se actualiza la categoría, verificar que la nueva categoría exista
-        if update_data.get("category_id") and not self.category_repo.get_by_id(update_data["category_id"]):
+        if update_data.get("category_id") and not self.category_repo.get_by_id(
+            update_data["category_id"]
+        ):
             raise CategoryNotFound()
 
         # 3. Si se actualiza el SKU, verificar que no entre en conflicto con otro producto

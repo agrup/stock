@@ -13,5 +13,7 @@ class Category(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 from src.domain.product import Product
+
 Category.model_rebuild()
