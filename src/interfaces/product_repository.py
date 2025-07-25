@@ -1,14 +1,14 @@
-from abc import ABC, abstractmethod
-from typing import Optional
+from typing import List, Optional, Protocol
 
 from src.domain.product import Product
 
 
-class ProductRepository(ABC):
-    @abstractmethod
+class ProductRepository(Protocol):
     def create(self, product: Product) -> Product:
-        raise NotImplementedError
+        ...
 
-    @abstractmethod
     def get_by_sku(self, sku: str) -> Optional[Product]:
-        raise NotImplementedError
+        ...
+
+    def get_all(self) -> List[Product]:
+        ...

@@ -1,10 +1,15 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.app.dependencies.product_use_cases import get_create_product_use_case
+from src.app.dependencies.product_use_cases import (
+    get_all_products_use_case,
+    get_create_product_use_case,
+)
 from src.core.product.exceptions import CategoryNotFound, ProductAlreadyExists
 from src.domain.product import Product
 from src.schemas.product import CreateProductSchema, ProductResponseSchema
 from src.use_cases.create_product import CreateProductUseCase
+from src.use_cases.get_all_products import GetAllProductsUseCase
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -24,3 +29,11 @@ def create_product(
         return created_product
     except (ProductAlreadyExists, CategoryNotFound) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.get("/", response_model=List[ProductResponseSchema])
+def get_all_products(
+    use_case: GetAllProductsUseCase = Depends(get_all_products_use_case),
+):
+    products = use_case.execute()
+    return products

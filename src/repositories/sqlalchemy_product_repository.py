@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -8,6 +8,7 @@ from src.repositories.models.product import ProductModel
 
 
 class SqlAlchemyProductRepository(ProductRepository):
+    """Implementación concreta del repositorio de productos con SQLAlchemy."""
     def __init__(self, session: Session):
         self.session = session
 
@@ -25,3 +26,9 @@ class SqlAlchemyProductRepository(ProductRepository):
         if not product_model:
             return None
         return Product.model_validate(product_model)
+
+    def get_all(self) -> List[Product]:
+        product_models = self.session.query(ProductModel).all()
+        return [
+            Product.model_validate(product) for product in product_models
+        ]

@@ -8,12 +8,16 @@ from sqlalchemy.orm import sessionmaker
 from src.app.main import app
 from src.infrastructure.sqlalchemy.base import Base
 # from src.app.dependencies.user_use_cases import get_sql_user_use_case # NOTE: This file does not exist yet
-from src.app.dependencies.product_use_cases import get_create_product_use_case
+from src.app.dependencies.product_use_cases import (
+    get_all_products_use_case,
+    get_create_product_use_case,
+)
 # from src.repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from src.repositories.sqlalchemy_category_repository import SqlAlchemyCategoryRepository
 from src.repositories.sqlalchemy_product_repository import SqlAlchemyProductRepository
 # from src.use_cases.create_user import CreateUserUseCase
 from src.use_cases.create_product import CreateProductUseCase
+from src.use_cases.get_all_products import GetAllProductsUseCase
 
 # Importa todos los modelos para que Base los conozca
 from src.repositories.models import category, product
@@ -31,22 +35,43 @@ def load_test_env():
         )
 
 
-@pytest.fixture(scope="function")
-def sqlite_session():
-    engine = create_engine(
-        "sqlite:///./test.db", connect_args={"check_same_thread": False}
-    )
-
+@pytest.fixture(scope="session")
+def db_engine():
+    """Fixture para crear el motor de la base de datos de prueba una vez por sesión."""
+    # Usamos una base de datos en memoria para máxima velocidad
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
+    yield engine
 
-    TestingSessionLocal = sessionmaker(bind=engine)
 
-    session = TestingSessionLocal()
+@pytest.fixture(scope="function")
+def db_session(db_engine):
+    """
+    Fixture que proporciona una sesión de base de datos transaccional para cada test.
+    Crea una transacción antes del test y la revierte después, aislando los tests.
+    """
+    connection = db_engine.connect()
+    transaction = connection.begin()
+    session = sessionmaker(bind=connection)()
+
     try:
         yield session
     finally:
         session.close()
-        os.remove("./test.db")
+        transaction.rollback()
+        connection.close()
+
+
+@pytest.fixture(scope="function")
+def category_repository(db_session):
+    """Fixture para el repositorio de categorías."""
+    return SqlAlchemyCategoryRepository(db_session)
+
+
+@pytest.fixture(scope="function")
+def product_repository(db_session):
+    """Fixture para el repositorio de productos."""
+    return SqlAlchemyProductRepository(db_session)
 
 
 # @pytest.fixture
@@ -61,12 +86,20 @@ def sqlite_session():
 
 
 @pytest.fixture
-def override_create_product_use_case(sqlite_session):
+def override_create_product_use_case(product_repository, category_repository):
     def _override():
-        product_repo = SqlAlchemyProductRepository(sqlite_session)
-        category_repo = SqlAlchemyCategoryRepository(sqlite_session)
-        return CreateProductUseCase(product_repo=product_repo, category_repo=category_repo)
+        return CreateProductUseCase(product_repo=product_repository, category_repo=category_repository)
 
     app.dependency_overrides[get_create_product_use_case] = _override
+    yield _override
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def override_get_all_products_use_case(product_repository):
+    def _override():
+        return GetAllProductsUseCase(product_repository)
+
+    app.dependency_overrides[get_all_products_use_case] = _override
     yield _override
     app.dependency_overrides.clear()

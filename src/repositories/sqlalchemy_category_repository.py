@@ -8,6 +8,7 @@ from src.repositories.models.category import CategoryModel
 
 
 class SqlAlchemyCategoryRepository(CategoryRepository):
+    """Implementación concreta del repositorio de categorías con SQLAlchemy."""
     def __init__(self, session: Session):
         self.session = session
 

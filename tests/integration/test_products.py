@@ -8,13 +8,13 @@ client = TestClient(app)
 
 
 def test_create_product_success(
-    override_create_product_use_case, sqlite_session: Session
+    override_create_product_use_case, db_session: Session
 ):
     """Test creating a product successfully."""
     # Arrange: Primero, creamos una categoría para que el producto pueda asociarse a ella.
     category = CategoryModel(name="Electrónica", description="Dispositivos electrónicos")
-    sqlite_session.add(category)
-    sqlite_session.commit()
+    db_session.add(category)
+    db_session.commit()
 
     product_data = {
         "name": "Producto de Prueba",
@@ -54,13 +54,13 @@ def test_create_product_fails_if_category_not_found(override_create_product_use_
 
 
 def test_create_product_fails_if_sku_exists(
-    override_create_product_use_case, sqlite_session: Session
+    override_create_product_use_case, db_session: Session
 ):
     """Test that product creation fails with a 409 if the SKU already exists."""
     # Arrange: Create a category and an initial product
     category = CategoryModel(name="Ropa", description="Prendas de vestir")
-    sqlite_session.add(category)
-    sqlite_session.commit()
+    db_session.add(category)
+    db_session.commit()
 
     initial_product_data = {
         "name": "Camiseta Original",
@@ -81,3 +81,38 @@ def test_create_product_fails_if_sku_exists(
     # Assert
     assert response.status_code == 409
     assert response.json() == {"detail": "El producto con este SKU ya existe"}
+
+
+def test_get_all_products(
+    override_create_product_use_case,
+    override_get_all_products_use_case,
+    db_session: Session,
+):
+    """Test getting a list of all products."""
+    # Arrange: Create a category and a product using the POST endpoint
+    category = CategoryModel(name="Bebidas", description="Líquidos para beber")
+    db_session.add(category)
+    db_session.commit()
+
+    product_data = {
+        "name": "Refresco de Cola",
+        "sku": "RC-001",
+        "unit_of_measure": "lata",
+        "cost_price": 0.5,
+        "sale_price": 1.0,
+        "min_stock": 20,
+        "max_stock": 200,
+        "category_id": category.id,
+    }
+    client.post("/v1/products/", json=product_data)
+
+    # Act
+    response = client.get("/v1/products/")
+
+    # Assert
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) == 1
+    assert data[0]["name"] == product_data["name"]
+    assert data[0]["sku"] == product_data["sku"]
