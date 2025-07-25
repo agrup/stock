@@ -2,9 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.app.dependencies.product_use_cases import (
-    get_all_products_use_case,
-    get_create_product_use_case,
-    get_product_by_id_use_case,
+    product_container,
 )
 from src.core.product.exceptions import CategoryNotFound, ProductAlreadyExists, ProductNotFound
 from src.domain.product import Product
@@ -23,7 +21,7 @@ router = APIRouter(prefix="/products", tags=["Products"])
 )
 def create_product(
     product_data: CreateProductSchema,
-    use_case: CreateProductUseCase = Depends(get_create_product_use_case),
+    use_case: CreateProductUseCase = Depends(product_container.create_product),
 ):
     try:
         product = Product(**product_data.model_dump())
@@ -35,7 +33,7 @@ def create_product(
 
 @router.get("/", response_model=List[ProductResponseSchema])
 def get_all_products(
-    use_case: GetAllProductsUseCase = Depends(get_all_products_use_case),
+    use_case: GetAllProductsUseCase = Depends(product_container.get_all_products),
 ):
     products = use_case.execute()
     return products
@@ -44,7 +42,7 @@ def get_all_products(
 @router.get("/{product_id}", response_model=ProductResponseSchema)
 def get_product_by_id(
     product_id: int,
-    use_case: GetProductByIdUseCase = Depends(get_product_by_id_use_case),
+    use_case: GetProductByIdUseCase = Depends(product_container.get_product_by_id),
 ):
     try:
         product = use_case.execute(product_id)

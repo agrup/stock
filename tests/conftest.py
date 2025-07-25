@@ -8,18 +8,11 @@ from sqlalchemy.orm import sessionmaker
 from src.app.main import app
 from src.infrastructure.sqlalchemy.base import Base
 # from src.app.dependencies.user_use_cases import get_sql_user_use_case # NOTE: This file does not exist yet
-from src.app.dependencies.product_use_cases import (
-    get_all_products_use_case,
-    get_create_product_use_case,
-    get_product_by_id_use_case,
-)
+from src.app.dependencies.product_use_cases import ProductUseCasesContainer, product_container
 # from src.repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from src.repositories.sqlalchemy_category_repository import SqlAlchemyCategoryRepository
 from src.repositories.sqlalchemy_product_repository import SqlAlchemyProductRepository
 # from src.use_cases.create_user import CreateUserUseCase
-from src.use_cases.create_product import CreateProductUseCase
-from src.use_cases.get_all_products import GetAllProductsUseCase
-from src.use_cases.get_product_by_id import GetProductByIdUseCase
 
 # Importa todos los modelos para que Base los conozca
 from src.repositories.models import category, product
@@ -88,30 +81,16 @@ def product_repository(db_session):
 
 
 @pytest.fixture
-def override_create_product_use_case(product_repository, category_repository):
-    def _override():
-        return CreateProductUseCase(product_repo=product_repository, category_repo=category_repository)
+def override_product_use_cases(db_session):
+    """
+    Fixture para sobreescribir los proveedores de casos de uso de productos.
+    Crea un contenedor con la sesión de prueba y reemplaza cada método
+    del contenedor de producción con el método correspondiente del de prueba.
+    """
+    test_container = ProductUseCasesContainer(session=db_session)
+    app.dependency_overrides[product_container.create_product] = test_container.create_product
+    app.dependency_overrides[product_container.get_all_products] = test_container.get_all_products
+    app.dependency_overrides[product_container.get_product_by_id] = test_container.get_product_by_id
 
-    app.dependency_overrides[get_create_product_use_case] = _override
-    yield _override
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def override_get_all_products_use_case(product_repository):
-    def _override():
-        return GetAllProductsUseCase(product_repository)
-
-    app.dependency_overrides[get_all_products_use_case] = _override
-    yield _override
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def override_get_product_by_id_use_case(product_repository):
-    def _override():
-        return GetProductByIdUseCase(product_repository)
-
-    app.dependency_overrides[get_product_by_id_use_case] = _override
-    yield _override
+    yield
     app.dependency_overrides.clear()

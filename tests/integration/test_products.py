@@ -9,7 +9,7 @@ client = TestClient(app)
 
 
 def test_create_product_success(
-    override_create_product_use_case, db_session: Session
+    override_product_use_cases, db_session: Session
 ):
     """Test creating a product successfully."""
     # Arrange: Primero, creamos una categoría para que el producto pueda asociarse a ella.
@@ -36,7 +36,7 @@ def test_create_product_success(
     assert data["sku"] == product_data["sku"]
     assert "id" in data
 
-def test_create_product_fails_if_category_not_found(override_create_product_use_case):
+def test_create_product_fails_if_category_not_found(override_product_use_cases):
     """Test that product creation fails with a 404 if the category does not exist."""
     product_data = {
         "name": "Producto Fallido",
@@ -55,7 +55,7 @@ def test_create_product_fails_if_category_not_found(override_create_product_use_
 
 
 def test_create_product_fails_if_sku_exists(
-    override_create_product_use_case, db_session: Session
+    override_product_use_cases, db_session: Session
 ):
     """Test that product creation fails with a 409 if the SKU already exists."""
     # Arrange: Create a category and an initial product
@@ -85,8 +85,7 @@ def test_create_product_fails_if_sku_exists(
 
 
 def test_get_all_products(
-    override_create_product_use_case,
-    override_get_all_products_use_case,
+    override_product_use_cases,
     db_session: Session,
 ):
     """Test getting a list of all products."""
@@ -120,7 +119,7 @@ def test_get_all_products(
 
 
 def test_get_product_by_id_success(
-    override_get_product_by_id_use_case,
+    override_product_use_cases,
     db_session: Session,
 ):
     """Test getting a single product by its ID successfully."""
@@ -148,7 +147,7 @@ def test_get_product_by_id_success(
     assert data["sku"] == "MAR-001"
 
 
-def test_get_product_by_id_not_found(override_get_product_by_id_use_case):
+def test_get_product_by_id_not_found(override_product_use_cases):
     """Test getting a non-existent product returns 404."""
     response = client.get("/v1/products/9999")
     assert response.status_code == 404

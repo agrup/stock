@@ -9,23 +9,21 @@ from src.use_cases.get_all_products import GetAllProductsUseCase
 from src.use_cases.get_product_by_id import GetProductByIdUseCase
 
 
-def get_create_product_use_case(
-    session: Session = Depends(get_session),
-) -> CreateProductUseCase:
-    product_repo = SqlAlchemyProductRepository(session)
-    category_repo = SqlAlchemyCategoryRepository(session)
-    return CreateProductUseCase(product_repo=product_repo, category_repo=category_repo)
+class ProductUseCasesContainer:
+    def __init__(self, session: Session = Depends(get_session)):
+        self._session = session
+
+    def create_product(self) -> CreateProductUseCase:
+        return CreateProductUseCase(
+            product_repo=SqlAlchemyProductRepository(self._session),
+            category_repo=SqlAlchemyCategoryRepository(self._session),
+        )
+
+    def get_all_products(self) -> GetAllProductsUseCase:
+        return GetAllProductsUseCase(SqlAlchemyProductRepository(self._session))
+
+    def get_product_by_id(self) -> GetProductByIdUseCase:
+        return GetProductByIdUseCase(SqlAlchemyProductRepository(self._session))
 
 
-def get_all_products_use_case(
-    session: Session = Depends(get_session),
-) -> GetAllProductsUseCase:
-    repo = SqlAlchemyProductRepository(session)
-    return GetAllProductsUseCase(repo)
-
-
-def get_product_by_id_use_case(
-    session: Session = Depends(get_session),
-) -> GetProductByIdUseCase:
-    repo = SqlAlchemyProductRepository(session)
-    return GetProductByIdUseCase(repo)
+product_container = ProductUseCasesContainer()
