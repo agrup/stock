@@ -46,8 +46,18 @@ test:
 	@echo "🧪 Running tests..."
 	@$(COMPOSE) --env-file .env.test --profile emulators up -d
 	@echo "⏳ Waiting for service to be ready..."
-	@until $$(docker compose --env-file .env.test logs $(SERVICE) 2>&1 | grep -q "Application startup complete."); do sleep 1; done
-	@echo "✅ Service is ready!"
+	@bash -c ' \
+		for i in $$(seq 1 30); do \
+			if $$(docker compose --env-file .env.test logs $(SERVICE) 2>&1 | grep -q "Application startup complete."); then \
+				echo "✅ Service is ready!"; \
+				exit 0; \
+			fi; \
+			sleep 1; \
+		done; \
+		echo "🚨 Service failed to start after 30 seconds. Logs:"; \
+		docker compose --env-file .env.test logs $(SERVICE); \
+		exit 1; \
+	'
 	@$(COMPOSE) --env-file .env.test exec -e PYTHONPATH=/app $(SERVICE) pytest -vv; EXIT_CODE=$$?
 	@echo "🛑 Stopping test containers..."
 	@$(COMPOSE) --env-file .env.test --profile emulators down > /dev/null 2>&1

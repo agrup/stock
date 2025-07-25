@@ -187,3 +187,36 @@ def test_update_product_not_found(override_product_use_cases):
     response = client.put("/v1/products/9999", json={"name": "Producto Fantasma"})
     assert response.status_code == 404
     assert response.json() == {"detail": "Producto no encontrado"}
+
+
+def test_delete_product_success(
+    override_product_use_cases, db_session: Session
+):
+    """Test deleting a product successfully."""
+    # Arrange: Create a category and a product
+    category = CategoryModel(name="Congelados", description="Productos congelados")
+    db_session.add(category)
+    db_session.commit()
+    product = ProductModel(
+        name="Helado de Vainilla", sku="HV-001", category_id=category.id,
+        unit_of_measure="litro", cost_price=2.0, sale_price=4.5,
+        min_stock=5, max_stock=20
+    )
+    db_session.add(product)
+    db_session.commit()
+
+    # Act
+    delete_response = client.delete(f"/v1/products/{product.id}")
+
+    # Assert
+    assert delete_response.status_code == 204
+    
+    # Verify it's gone
+    get_response = client.get(f"/v1/products/{product.id}")
+    assert get_response.status_code == 404
+
+def test_delete_product_not_found(override_product_use_cases):
+    """Test that deleting a non-existent product returns 404."""
+    response = client.delete("/v1/products/9999")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Producto no encontrado"}

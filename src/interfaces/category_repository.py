@@ -1,4 +1,4 @@
-from typing import Optional, Protocol
+from typing import List, Optional, Protocol
 
 from src.domain.category import Category
 
@@ -6,4 +6,13 @@ from src.domain.category import Category
 class CategoryRepository(Protocol):
     def get_by_id(self, category_id: int) -> Optional[Category]:
         """Busca una categoría por su ID."""
+        ...
+
+    def get_by_name(self, name: str) -> Optional[Category]:
+        ...
+
+    def create(self, category: Category) -> Category:
+        ...
+
+    def get_all(self) -> List[Category]:
         ...

@@ -18,3 +18,6 @@ class ProductRepository(Protocol):
 
     def update(self, product_id: int, product_data: dict) -> Product:
         ...
+
+    def delete(self, product_id: int) -> None:
+        ...

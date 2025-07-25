@@ -8,6 +8,7 @@ from src.use_cases.create_product import CreateProductUseCase
 from src.use_cases.get_all_products import GetAllProductsUseCase
 from src.use_cases.get_product_by_id import GetProductByIdUseCase
 from src.use_cases.update_product import UpdateProductUseCase
+from src.use_cases.delete_product import DeleteProductUseCase
 
 
 class ProductUseCasesContainer:
@@ -31,6 +32,9 @@ class ProductUseCasesContainer:
             product_repo=SqlAlchemyProductRepository(self._session),
             category_repo=SqlAlchemyCategoryRepository(self._session),
         )
+
+    def delete_product(self) -> DeleteProductUseCase:
+        return DeleteProductUseCase(SqlAlchemyProductRepository(self._session))
 
 
 product_container = ProductUseCasesContainer()

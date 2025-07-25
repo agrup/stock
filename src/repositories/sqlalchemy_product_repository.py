@@ -49,3 +49,8 @@ class SqlAlchemyProductRepository(ProductRepository):
         self.session.commit()
         self.session.refresh(product_model)
         return Product.model_validate(product_model)
+
+    def delete(self, product_id: int) -> None:
+        product_model = self.session.query(ProductModel).filter_by(id=product_id).one()
+        self.session.delete(product_model)
+        self.session.commit()

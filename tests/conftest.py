@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from src.app.main import app
 from src.infrastructure.sqlalchemy.base import Base
 # from src.app.dependencies.user_use_cases import get_sql_user_use_case # NOTE: This file does not exist yet
+from src.app.dependencies.category_use_cases import CategoryUseCasesContainer, category_container
 from src.app.dependencies.product_use_cases import ProductUseCasesContainer, product_container
 # from src.repositories.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from src.repositories.sqlalchemy_category_repository import SqlAlchemyCategoryRepository
@@ -92,6 +93,20 @@ def override_product_use_cases(db_session):
     app.dependency_overrides[product_container.get_all_products] = test_container.get_all_products
     app.dependency_overrides[product_container.get_product_by_id] = test_container.get_product_by_id
     app.dependency_overrides[product_container.update_product] = test_container.update_product
+    app.dependency_overrides[product_container.delete_product] = test_container.delete_product
+
+    yield
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def override_category_use_cases(db_session):
+    """
+    Fixture para sobreescribir los proveedores de casos de uso de categorías.
+    """
+    test_container = CategoryUseCasesContainer(session=db_session)
+    app.dependency_overrides[category_container.create_category] = test_container.create_category
+    app.dependency_overrides[category_container.get_all_categories] = test_container.get_all_categories
 
     yield
     app.dependency_overrides.clear()

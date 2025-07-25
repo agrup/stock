@@ -11,6 +11,7 @@ from src.use_cases.create_product import CreateProductUseCase
 from src.use_cases.get_all_products import GetAllProductsUseCase
 from src.use_cases.get_product_by_id import GetProductByIdUseCase
 from src.use_cases.update_product import UpdateProductUseCase
+from src.use_cases.delete_product import DeleteProductUseCase
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -65,4 +66,16 @@ def update_product(
         )
         return updated_product
     except (ProductNotFound, CategoryNotFound, ProductAlreadyExists) as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_product(
+    product_id: int,
+    use_case: Annotated[DeleteProductUseCase, Depends(product_container.delete_product)],
+):
+    try:
+        use_case.execute(product_id)
+        return None # No se devuelve contenido en un 204
+    except ProductNotFound as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
