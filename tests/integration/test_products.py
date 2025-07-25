@@ -200,6 +200,51 @@ def test_update_product_not_found(override_product_use_cases):
     assert response.json() == {"detail": "Producto no encontrado"}
 
 
+def test_update_product_sku_conflict(override_product_use_cases, db_session: Session):
+    """Test that updating a product's SKU to an existing one fails."""
+    # Arrange
+    category = CategoryModel(name="General", description="")
+    db_session.add(category)
+    db_session.commit()
+
+    # Create product 1
+    client.post(
+        "/v1/products/",
+        json={
+            "name": "Producto 1",
+            "sku": "SKU-EXISTENTE",
+            "category_id": category.id,
+            "cost_price": 1,
+            "sale_price": 2,
+            "min_stock": 0,
+            "max_stock": 10,
+            "unit_of_measure": "u",
+        },
+    )
+    # Create product 2
+    res = client.post(
+        "/v1/products/",
+        json={
+            "name": "Producto 2",
+            "sku": "SKU-A-CAMBIAR",
+            "category_id": category.id,
+            "cost_price": 1,
+            "sale_price": 2,
+            "min_stock": 0,
+            "max_stock": 10,
+            "unit_of_measure": "u",
+        },
+    )
+    product2_id = res.json()["id"]
+
+    # Act: Try to update product 2's SKU to product 1's SKU
+    response = client.put(f"/v1/products/{product2_id}", json={"sku": "SKU-EXISTENTE"})
+
+    # Assert
+    assert response.status_code == 409
+    assert response.json() == {"detail": "El producto con este SKU ya existe"}
+
+
 def test_delete_product_success(override_product_use_cases, db_session: Session):
     """Test deleting a product successfully."""
     # Arrange: Create a category and a product

@@ -125,6 +125,13 @@ def test_update_category_name_conflict(
     assert response.json() == {"detail": "La categoría con este nombre ya existe"}
 
 
+def test_update_category_not_found(override_category_use_cases):
+    """Test that updating a non-existent category returns 404."""
+    response = client.put("/v1/categories/9999", json={"name": "Fantasma"})
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Categoría no encontrada"}
+
+
 def test_delete_category_success(override_category_use_cases, db_session: Session):
     """Test deleting a category successfully."""
     # Arrange
