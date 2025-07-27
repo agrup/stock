@@ -1,17 +1,17 @@
-# Agrup API
+# Stock Service API
 
-API para la gestión de usuarios y roles utilizando Firebase Authentication y Firestore.
+API para la gestión de inventario, incluyendo productos y categorías.
 
 ## 🧱 Tecnologías principales
 
 - [FastAPI](https://fastapi.tiangolo.com/)
-- [Firebase Admin SDK](https://firebase.google.com/docs/admin/setup)
-- [Firestore](https://firebase.google.com/docs/firestore)
-- [Firebase Authentication](https://firebase.google.com/docs/auth)
+- [SQLAlchemy](https://www.sqlalchemy.org/)
+- [Alembic](https://alembic.sqlalchemy.org/en/latest/)
 - Docker + Docker Compose
 - Clean Architecture
 - Uvicorn (ASGI server)
-- pytest + black + flake8 + pre-commit
+- `pytest` para testing
+- `ruff`, `black`, `mypy` para calidad de código
 
 ## 📁 Estructura del proyecto
 
