@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select
 
 from src.domain.stock_movement import StockMovement
@@ -29,3 +29,17 @@ class SqlAlchemyStockMovementRepository(StockMovementRepository):
 
         results = self.session.execute(query).scalars().all()
         return [StockMovement.model_validate(res) for res in results]
+
+    def get_by_id(self, movement_id: int) -> Optional[StockMovement]:
+        model = (
+            self.session.query(StockMovementModel)
+            .options(joinedload(StockMovementModel.product))
+            .filter_by(id=movement_id)
+            .first()
+        )
+        return StockMovement.model_validate(model) if model else None
+
+    def delete(self, movement_id: int) -> None:
+        model = self.session.query(StockMovementModel).filter_by(id=movement_id).one()
+        self.session.delete(model)
+        self.session.flush()

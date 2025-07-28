@@ -3,12 +3,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.app.dependencies.stock_movement_use_cases import stock_movement_container
 from src.core.product.exceptions import ProductNotFound
-from src.core.stock_movements.exceptions import InsufficientStockError
+from src.core.stock_movements.exceptions import InsufficientStockError, StockMovementNotFound
 from src.schemas.stock_movement import (
     CreateStockMovementSchema,
     StockMovementResponseSchema,
 )
 from src.use_cases.create_stock_movement import CreateStockMovementUseCase
+from src.use_cases.delete_stock_movement import DeleteStockMovementUseCase
 from src.use_cases.get_all_stock_movements import GetAllStockMovementsUseCase
 
 router = APIRouter(prefix="/stock-movements", tags=["Stock Movements"])
@@ -43,3 +44,17 @@ def get_all_stock_movements(
 ):
     movements = use_case.execute(product_id=product_id)
     return movements
+
+
+@router.delete("/{movement_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_stock_movement(
+    movement_id: int,
+    use_case: Annotated[
+        DeleteStockMovementUseCase,
+        Depends(stock_movement_container.delete_stock_movement),
+    ],
+):
+    try:
+        use_case.execute(movement_id)
+    except (StockMovementNotFound, ProductNotFound) as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)

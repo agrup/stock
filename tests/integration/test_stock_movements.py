@@ -205,3 +205,40 @@ def test_get_stock_movements_filtered_by_product(
     data = response.json()
     assert len(data) == 1
     assert data[0]["product_id"] == prod1_id
+
+
+def test_delete_stock_movement_reverts_stock(
+    override_product_use_cases,
+    override_category_use_cases,
+    override_stock_movement_use_cases,
+    db_session: Session,
+):
+    """Test that deleting a stock movement correctly reverts the product's stock."""
+    # Arrange: Create a product and add a stock entry of 50 units
+    res_cat = client.post("/v1/categories/", json={"name": "Category G"})
+    product_data = {
+        "name": "Producto G", "sku": "SKU-G", "category_id": res_cat.json()["id"],
+        "cost_price": 10, "sale_price": 20, "min_stock": 5, "max_stock": 100,
+        "unit_of_measure": "unidad",
+    }
+    res_prod = client.post("/v1/products/", json=product_data)
+    product_id = res_prod.json()["id"]
+
+    res_movement = client.post(
+        "/v1/stock-movements/",
+        json={"product_id": product_id, "movement_type": "ENTRADA", "quantity": 50}
+    )
+    movement_id = res_movement.json()["id"]
+
+    # Verify initial state
+    assert client.get(f"/v1/products/{product_id}").json()["current_stock"] == 50
+
+    # Act: Delete the stock movement
+    delete_response = client.delete(f"/v1/stock-movements/{movement_id}")
+
+    # Assert
+    assert delete_response.status_code == 204
+
+    # Verify that the product's stock has been reverted to 0
+    product_res = client.get(f"/v1/products/{product_id}")
+    assert product_res.json()["current_stock"] == 0

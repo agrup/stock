@@ -10,3 +10,9 @@ class StockMovementRepository(Protocol):
     def get_all(
         self, product_id: Optional[int] = None
     ) -> List[StockMovement]: ...
+
+    def get_by_id(self, movement_id: int) -> Optional[StockMovement]:
+        ...
+
+    def delete(self, movement_id: int) -> None:
+        ...
