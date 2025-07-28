@@ -22,8 +22,7 @@ class SqlAlchemyProductRepository(ProductRepository):
 
         product_model = ProductModel(**product_data)
         self.session.add(product_model)
-        self.session.commit()
-        self.session.refresh(product_model)
+        self.session.flush()
         return Product.model_validate(product_model)
 
     def get_by_sku(self, sku: str) -> Optional[Product]:
@@ -66,11 +65,10 @@ class SqlAlchemyProductRepository(ProductRepository):
             if value is not None:
                 setattr(product_model, key, value)
 
-        self.session.commit()
-        self.session.refresh(product_model)
+        self.session.flush()
         return Product.model_validate(product_model)
 
     def delete(self, product_id: int) -> None:
         product_model = self.session.query(ProductModel).filter_by(id=product_id).one()
         self.session.delete(product_model)
-        self.session.commit()
+        self.session.flush()

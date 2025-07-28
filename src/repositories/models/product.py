@@ -20,6 +20,7 @@ class ProductModel(Base):
     sale_price: Mapped[float] = mapped_column(Float)
     min_stock: Mapped[int] = mapped_column(Integer)
     max_stock: Mapped[int] = mapped_column(Integer)
+    current_stock: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
     supplier_id: Mapped[int | None] = mapped_column(ForeignKey("suppliers.id"), nullable=True)
 

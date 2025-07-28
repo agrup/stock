@@ -35,6 +35,7 @@ class ProductResponseSchema(BaseModel):
     name: str
     sku: str
     description: str | None
+    current_stock: int
     sale_price: float
     category: CategoryResponseSchema
     supplier: Optional[SupplierResponseSchema] = None

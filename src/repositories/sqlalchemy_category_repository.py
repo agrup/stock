@@ -34,8 +34,7 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
     def create(self, category: Category) -> Category:
         category_model = CategoryModel(**category.model_dump(exclude={"id"}))
         self.session.add(category_model)
-        self.session.commit()
-        self.session.refresh(category_model)
+        self.session.flush()
         return Category.model_validate(category_model)
 
     def get_all(self) -> List[Category]:
@@ -54,8 +53,7 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
         for key, value in category_data.items():
             if value is not None:
                 setattr(category_model, key, value)
-        self.session.commit()
-        self.session.refresh(category_model)
+        self.session.flush()
         return Category.model_validate(category_model)
 
     def delete(self, category_id: int) -> None:
@@ -69,4 +67,4 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
             raise CategoryInUseError()
 
         self.session.delete(category_model)
-        self.session.commit()
+        self.session.flush()

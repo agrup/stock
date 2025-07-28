@@ -15,7 +15,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.app.config import get_database_url
 from src.infrastructure.sqlalchemy.base import Base
 # Importar todos los modelos para que Base los conozca y Alembic los vea
-from src.repositories.models import category, product, supplier
+from src.repositories.models import category, product, stock_movement, supplier
 
 
 # this is the Alembic Config object, which provides

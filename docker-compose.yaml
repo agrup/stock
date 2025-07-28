@@ -12,11 +12,13 @@ services:
     volumes:
       - ./.:/app/ # Monta todo el directorio actual. Suficiente para el hot-reload.
     networks:
-      - ${DOCKER_NETWORK}      
+      - stock
     command: >
       uvicorn src.app.main:app --host 0.0.0.0 --port 8080 --reload
 
 networks:
-  enviame:
+  stock:
     name: ${DOCKER_NETWORK}
-    external: true      
+    external: false
+      
+    

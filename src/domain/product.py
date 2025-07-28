@@ -13,6 +13,7 @@ class Product(BaseModel):
     sale_price: float = Field(gt=0)
     min_stock: int = Field(ge=0)
     max_stock: int = Field(ge=0)
+    current_stock: int = Field(ge=0, default=0)
 
     # Relationships are now nested objects
     category: "Category"
