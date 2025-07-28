@@ -56,6 +56,34 @@ def test_create_product_fails_if_category_not_found(override_product_use_cases):
     assert response.json() == {"detail": "La categoría especificada no existe"}
 
 
+def test_create_product_fails_if_supplier_not_found(
+    override_product_use_cases, db_session: Session
+):
+    """Test that product creation fails with a 404 if the supplier does not exist."""
+    # Arrange: Create a category first
+    category = CategoryModel(name="Cat for Supplier Test", description="")
+    db_session.add(category)
+    db_session.commit()
+
+    product_data = {
+        "name": "Producto con Proveedor Fantasma",
+        "sku": "SKU-FAIL-SUP-404",
+        "unit_of_measure": "unidad",
+        "cost_price": 10.0,
+        "sale_price": 20.0,
+        "min_stock": 1,
+        "max_stock": 10,
+        "category_id": category.id,
+        "supplier_id": 9999,  # ID de proveedor que no existe
+    }
+    # Act
+    response = client.post("/v1/products/", json=product_data)
+
+    # Assert
+    assert response.status_code == 404
+    assert response.json() == {"detail": "El proveedor especificado no existe"}
+
+
 def test_create_product_fails_if_sku_exists(
     override_product_use_cases, db_session: Session
 ):

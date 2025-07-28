@@ -13,6 +13,10 @@ from src.app.dependencies.product_use_cases import (
     ProductUseCasesContainer,
     product_container,
 )
+from src.app.dependencies.supplier_use_cases import (
+    SupplierUseCasesContainer,
+    supplier_container,
+)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -78,6 +82,25 @@ def override_product_use_cases(db_session):
         product_container.get_product_by_id: test_container.get_product_by_id,
         product_container.update_product: test_container.update_product,
         product_container.delete_product: test_container.delete_product,
+    }
+    app.dependency_overrides.update(overrides)
+
+    yield
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def override_supplier_use_cases(db_session):
+    """
+    Fixture para sobreescribir los proveedores de casos de uso de proveedores.
+    """
+    test_container = SupplierUseCasesContainer(session=db_session)
+    overrides = {
+        supplier_container.create_supplier: test_container.create_supplier,
+        supplier_container.get_all_suppliers: test_container.get_all_suppliers,
+        supplier_container.get_supplier_by_id: test_container.get_supplier_by_id,
+        supplier_container.update_supplier: test_container.update_supplier,
+        supplier_container.delete_supplier: test_container.delete_supplier,
     }
     app.dependency_overrides.update(overrides)
 

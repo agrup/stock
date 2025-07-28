@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from sqlalchemy.orm import Session, joinedload
 
+from src.core.category.exceptions import CategoryInUseError
 from src.domain.category import Category
 from src.interfaces.category_repository import CategoryRepository
 from src.repositories.models.category import CategoryModel
@@ -38,7 +39,12 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
         return Category.model_validate(category_model)
 
     def get_all(self) -> List[Category]:
-        category_models = self.session.query(CategoryModel).all()
+        category_models = (
+            self.session.query(CategoryModel)
+            .options(joinedload(CategoryModel.products))
+            .order_by(CategoryModel.id)
+            .all()
+        )
         return [Category.model_validate(category) for category in category_models]
 
     def update(self, category_id: int, category_data: dict) -> Category:
@@ -53,8 +59,14 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
         return Category.model_validate(category_model)
 
     def delete(self, category_id: int) -> None:
-        category_model = (
-            self.session.query(CategoryModel).filter_by(id=category_id).one()
-        )
+        # The existence check is done in the use case, but we need to fetch
+        # the object with its products to check for usage.
+        category_model = self.session.query(CategoryModel).options(
+            joinedload(CategoryModel.products)
+        ).filter_by(id=category_id).one()
+
+        if category_model.products:
+            raise CategoryInUseError()
+
         self.session.delete(category_model)
         self.session.commit()

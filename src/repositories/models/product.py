@@ -5,6 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.infrastructure.sqlalchemy.base import Base
 from src.repositories.models.category import CategoryModel
+from src.repositories.models.supplier import SupplierModel
 
 
 class ProductModel(Base):
@@ -20,6 +21,7 @@ class ProductModel(Base):
     min_stock: Mapped[int] = mapped_column(Integer)
     max_stock: Mapped[int] = mapped_column(Integer)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
+    supplier_id: Mapped[int | None] = mapped_column(ForeignKey("suppliers.id"), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -27,3 +29,4 @@ class ProductModel(Base):
     )
 
     category: Mapped["CategoryModel"] = relationship(back_populates="products")
+    supplier: Mapped["SupplierModel | None"] = relationship(back_populates="products")

@@ -5,9 +5,10 @@ from src.app.dependencies.product_use_cases import (
     product_container,
 )
 from src.core.product.exceptions import (
-    CategoryNotFound,
     ProductAlreadyExists,
     ProductNotFound,
+    CategoryForProductNotFound,
+    SupplierForProductNotFound,
 )
 from src.domain.product import Product
 from src.schemas.product import (
@@ -36,10 +37,9 @@ def create_product(
     ],
 ):
     try:
-        product = Product(**product_data.model_dump())
-        created_product = use_case.execute(product)
+        created_product = use_case.execute(product_data.model_dump())
         return created_product
-    except (ProductAlreadyExists, CategoryNotFound) as e:
+    except (ProductAlreadyExists, CategoryForProductNotFound, SupplierForProductNotFound) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -81,7 +81,12 @@ def update_product(
             product_id, product_data.model_dump(exclude_unset=True)
         )
         return updated_product
-    except (ProductNotFound, CategoryNotFound, ProductAlreadyExists) as e:
+    except (
+        ProductNotFound,
+        CategoryForProductNotFound,
+        ProductAlreadyExists,
+        SupplierForProductNotFound,
+    ) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 

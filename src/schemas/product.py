@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
+from src.schemas.category import CategoryResponseSchema
+from src.schemas.supplier import SupplierResponseSchema
 
 
 class CreateProductSchema(BaseModel):
@@ -12,6 +14,7 @@ class CreateProductSchema(BaseModel):
     min_stock: int = Field(..., ge=0)
     max_stock: int = Field(..., ge=0)
     category_id: int
+    supplier_id: Optional[int] = None
 
 
 class UpdateProductSchema(BaseModel):
@@ -24,6 +27,7 @@ class UpdateProductSchema(BaseModel):
     min_stock: Optional[int] = Field(None, ge=0)
     max_stock: Optional[int] = Field(None, ge=0)
     category_id: Optional[int] = None
+    supplier_id: Optional[int] = None
 
 
 class ProductResponseSchema(BaseModel):
@@ -32,5 +36,7 @@ class ProductResponseSchema(BaseModel):
     sku: str
     description: str | None
     sale_price: float
+    category: CategoryResponseSchema
+    supplier: Optional[SupplierResponseSchema] = None
 
     model_config = ConfigDict(from_attributes=True)

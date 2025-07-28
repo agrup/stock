@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from src.domain.product import Product
 from src.interfaces.product_repository import ProductRepository
@@ -14,7 +14,13 @@ class SqlAlchemyProductRepository(ProductRepository):
         self.session = session
 
     def create(self, product: Product) -> Product:
-        product_model = ProductModel(**product.model_dump())
+        # Exclude nested objects and prepare data for the DB model
+        product_data = product.model_dump(exclude={"id", "category", "supplier"})
+        product_data["category_id"] = product.category.id
+        if product.supplier:
+            product_data["supplier_id"] = product.supplier.id
+
+        product_model = ProductModel(**product_data)
         self.session.add(product_model)
         self.session.commit()
         self.session.refresh(product_model)
@@ -27,19 +33,34 @@ class SqlAlchemyProductRepository(ProductRepository):
         return Product.model_validate(product_model)
 
     def get_all(self) -> List[Product]:
-        product_models = self.session.query(ProductModel).all()
+        product_models = (
+            self.session.query(ProductModel)
+            .options(
+                joinedload(ProductModel.category), joinedload(ProductModel.supplier)
+            )
+            .all()
+        )
         return [Product.model_validate(product) for product in product_models]
 
     def get_by_id(self, product_id: int) -> Optional[Product]:
         product_model = (
-            self.session.query(ProductModel).filter_by(id=product_id).first()
+            self.session.query(ProductModel)
+            .options(
+                joinedload(ProductModel.category), joinedload(ProductModel.supplier)
+            )
+            .filter_by(id=product_id).first()
         )
         if not product_model:
             return None
         return Product.model_validate(product_model)
 
     def update(self, product_id: int, product_data: dict) -> Product:
-        product_model = self.session.query(ProductModel).filter_by(id=product_id).one()
+        product_model = (
+            self.session.query(ProductModel)
+            .options(
+                joinedload(ProductModel.category), joinedload(ProductModel.supplier)
+            )
+            .filter_by(id=product_id).one())
 
         for key, value in product_data.items():
             if value is not None:
@@ -53,9 +74,3 @@ class SqlAlchemyProductRepository(ProductRepository):
         product_model = self.session.query(ProductModel).filter_by(id=product_id).one()
         self.session.delete(product_model)
         self.session.commit()
-
-    def get_by_category_id(self, category_id: int) -> List[Product]:
-        product_models = (
-            self.session.query(ProductModel).filter_by(category_id=category_id).all()
-        )
-        return [Product.model_validate(product) for product in product_models]

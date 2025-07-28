@@ -7,16 +7,12 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
 
-  - repo: https://github.com/psf/black
-    rev: 24.8.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.5
     hooks:
-      - id: black
-
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.1.0
-    hooks:
-      - id: flake8
-        # Depende de la configuración en .flake8
+      - id: ruff
+        args: [--fix] # Auto-corrige errores de linting
+      - id: ruff-format # Reemplaza a black
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.11.0

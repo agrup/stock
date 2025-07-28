@@ -9,11 +9,5 @@ class Category(BaseModel):
     id: int | None = None
     name: str
     description: str | None = None
-    products: List["Product"] = []  # noqa: F821
 
     model_config = ConfigDict(from_attributes=True)
-
-
-from src.domain.product import Product  # noqa: E402
-
-Category.model_rebuild()
