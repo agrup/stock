@@ -101,6 +101,7 @@ def override_stock_movement_use_cases(db_session):
     test_container = StockMovementUseCasesContainer(session=db_session)
     overrides = {
         stock_movement_container.create_stock_movement: test_container.create_stock_movement,
+        stock_movement_container.get_all_stock_movements: test_container.get_all_stock_movements,
     }
     app.dependency_overrides.update(overrides)
 

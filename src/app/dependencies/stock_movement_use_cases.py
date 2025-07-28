@@ -7,6 +7,7 @@ from src.repositories.sqlalchemy_stock_movement_repository import (
     SqlAlchemyStockMovementRepository,
 )
 from src.use_cases.create_stock_movement import CreateStockMovementUseCase
+from src.use_cases.get_all_stock_movements import GetAllStockMovementsUseCase
 
 
 class StockMovementUseCasesContainer:
@@ -17,6 +18,11 @@ class StockMovementUseCasesContainer:
         return CreateStockMovementUseCase(
             movement_repo=SqlAlchemyStockMovementRepository(self._session),
             product_repo=SqlAlchemyProductRepository(self._session),
+        )
+
+    def get_all_stock_movements(self) -> GetAllStockMovementsUseCase:
+        return GetAllStockMovementsUseCase(
+            movement_repo=SqlAlchemyStockMovementRepository(self._session)
         )
 
 

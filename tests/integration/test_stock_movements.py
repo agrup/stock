@@ -149,3 +149,59 @@ def test_create_stock_exit_fails_if_insufficient_stock(
     # Assert
     assert response.status_code == 409
     assert response.json() == {"detail": "Stock insuficiente para realizar la operación"}
+
+
+def test_get_all_stock_movements(
+    override_product_use_cases,
+    override_category_use_cases,
+    override_stock_movement_use_cases,
+    db_session: Session,
+):
+    """Test getting a list of all stock movements."""
+    # Arrange: Create a product and add two movements
+    res_cat = client.post("/v1/categories/", json={"name": "Category E"})
+    product_data = {
+        "name": "Producto E", "sku": "SKU-E", "category_id": res_cat.json()["id"],
+        "cost_price": 10, "sale_price": 20, "min_stock": 5, "max_stock": 100,
+        "unit_of_measure": "unidad",
+    }
+    res_prod = client.post("/v1/products/", json=product_data)
+    product_id = res_prod.json()["id"]
+    client.post("/v1/stock-movements/", json={"product_id": product_id, "movement_type": "ENTRADA", "quantity": 100})
+    client.post("/v1/stock-movements/", json={"product_id": product_id, "movement_type": "SALIDA", "quantity": 20})
+
+    # Act
+    response = client.get("/v1/stock-movements/")
+
+    # Assert
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) == 2
+
+
+def test_get_stock_movements_filtered_by_product(
+    override_product_use_cases,
+    override_category_use_cases,
+    override_stock_movement_use_cases,
+    db_session: Session,
+):
+    """Test filtering stock movements by product_id."""
+    # Arrange: Create two products and add movements to both
+    res_cat = client.post("/v1/categories/", json={"name": "Category F"})
+    # Product 1
+    res_prod1 = client.post("/v1/products/", json={"name": "Producto F1", "sku": "SKU-F1", "category_id": res_cat.json()["id"], "cost_price": 1, "sale_price": 2, "min_stock": 0, "max_stock": 10, "unit_of_measure": "u"})
+    prod1_id = res_prod1.json()["id"]
+    client.post("/v1/stock-movements/", json={"product_id": prod1_id, "movement_type": "ENTRADA", "quantity": 50})
+    # Product 2
+    res_prod2 = client.post("/v1/products/", json={"name": "Producto F2", "sku": "SKU-F2", "category_id": res_cat.json()["id"], "cost_price": 1, "sale_price": 2, "min_stock": 0, "max_stock": 10, "unit_of_measure": "u"})
+    client.post("/v1/stock-movements/", json={"product_id": res_prod2.json()["id"], "movement_type": "ENTRADA", "quantity": 10})
+
+    # Act: Get movements only for product 1
+    response = client.get(f"/v1/stock-movements/?product_id={prod1_id}")
+
+    # Assert
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["product_id"] == prod1_id

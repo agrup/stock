@@ -1,4 +1,6 @@
+from typing import List, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from src.domain.stock_movement import StockMovement
 from src.interfaces.stock_movement_repository import StockMovementRepository
@@ -16,3 +18,14 @@ class SqlAlchemyStockMovementRepository(StockMovementRepository):
         self.session.add(movement_model)
         self.session.flush()  # Flush to get the ID, but don't commit.
         return StockMovement.model_validate(movement_model)
+
+    def get_all(
+        self, product_id: Optional[int] = None
+    ) -> List[StockMovement]:
+        query = select(StockMovementModel).order_by(StockMovementModel.id.desc())
+
+        if product_id:
+            query = query.where(StockMovementModel.product_id == product_id)
+
+        results = self.session.execute(query).scalars().all()
+        return [StockMovement.model_validate(res) for res in results]

@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.app.dependencies.stock_movement_use_cases import stock_movement_container
@@ -9,6 +9,7 @@ from src.schemas.stock_movement import (
     StockMovementResponseSchema,
 )
 from src.use_cases.create_stock_movement import CreateStockMovementUseCase
+from src.use_cases.get_all_stock_movements import GetAllStockMovementsUseCase
 
 router = APIRouter(prefix="/stock-movements", tags=["Stock Movements"])
 
@@ -30,3 +31,15 @@ def create_stock_movement(
         return created_movement
     except (ProductNotFound, InsufficientStockError) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.get("/", response_model=List[StockMovementResponseSchema])
+def get_all_stock_movements(
+    use_case: Annotated[
+        GetAllStockMovementsUseCase,
+        Depends(stock_movement_container.get_all_stock_movements),
+    ],
+    product_id: Optional[int] = None,
+):
+    movements = use_case.execute(product_id=product_id)
+    return movements
