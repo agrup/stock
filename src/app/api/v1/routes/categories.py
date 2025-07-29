@@ -2,6 +2,7 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.app.dependencies.category_use_cases import category_container
+from src.app.dependencies.common_filters import PaginationParams, get_pagination_params
 from src.core.category.exceptions import (
     CategoryAlreadyExists,
     CategoryInUseError,
@@ -41,11 +42,12 @@ def create_category(
 
 @router.get("/", response_model=List[CategoryResponseSchema])
 def get_all_categories(
+    commons: Annotated[PaginationParams, Depends(get_pagination_params)],
     use_case: Annotated[
         GetAllCategoriesUseCase, Depends(category_container.get_all_categories)
     ],
 ):
-    categories = use_case.execute()
+    categories = use_case.execute(commons)
     return categories
 
 

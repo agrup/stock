@@ -2,6 +2,7 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.app.dependencies.supplier_use_cases import supplier_container
+from src.app.dependencies.common_filters import PaginationParams, get_pagination_params
 from src.core.suppliers.exceptions import (
     SupplierAlreadyExists,
     SupplierInUseError,
@@ -40,11 +41,12 @@ def create_supplier(
 
 @router.get("/", response_model=List[SupplierResponseSchema])
 def get_all_suppliers(
+    commons: Annotated[PaginationParams, Depends(get_pagination_params)],
     use_case: Annotated[
         GetAllSuppliersUseCase, Depends(supplier_container.get_all_suppliers)
     ],
 ):
-    return use_case.execute()
+    return use_case.execute(commons)
 
 
 @router.get("/{supplier_id}", response_model=SupplierResponseSchema)

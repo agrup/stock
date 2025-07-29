@@ -37,11 +37,13 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
         self.session.flush()
         return Category.model_validate(category_model)
 
-    def get_all(self) -> List[Category]:
+    def get_all(self, skip: int = 0, limit: int = 100) -> List[Category]:
         category_models = (
             self.session.query(CategoryModel)
             .options(joinedload(CategoryModel.products))
             .order_by(CategoryModel.id)
+            .offset(skip)
+            .limit(limit)
             .all()
         )
         return [Category.model_validate(category) for category in category_models]

@@ -47,7 +47,7 @@ test:
 	@$(COMPOSE) --env-file .env.test --profile emulators up -d
 	@echo "⏳ Waiting for service to be ready..."
 	@bash -c ' \
-		for i in $$(seq 1 30); do \
+		for i in $$(seq 1 10); do \
 			if $$(docker compose --env-file .env.test logs $(SERVICE) 2>&1 | grep -q "Application startup complete."); then \
 				echo "✅ Service is ready!"; \
 				exit 0; \

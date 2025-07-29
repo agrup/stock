@@ -15,7 +15,7 @@ class SupplierRepository(Protocol):
     def get_by_name(self, name: str) -> Optional[Supplier]:
         ...
 
-    def get_all(self) -> List[Supplier]:
+    def get_all(self, skip: int = 0, limit: int = 100) -> List[Supplier]:
         ...
 
     def update(self, supplier_id: int, data: Mapping[str, Any]) -> Supplier:

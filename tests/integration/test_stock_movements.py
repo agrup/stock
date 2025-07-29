@@ -171,7 +171,7 @@ def test_get_all_stock_movements(
     client.post("/v1/stock-movements/", json={"product_id": product_id, "movement_type": "SALIDA", "quantity": 20})
 
     # Act
-    response = client.get("/v1/stock-movements/")
+    response = client.get("/v1/stock-movements/?limit=10")
 
     # Assert
     assert response.status_code == 200
@@ -205,6 +205,36 @@ def test_get_stock_movements_filtered_by_product(
     data = response.json()
     assert len(data) == 1
     assert data[0]["product_id"] == prod1_id
+
+
+def test_get_stock_movements_with_pagination(
+    override_product_use_cases,
+    override_category_use_cases,
+    override_stock_movement_use_cases,
+    db_session: Session,
+):
+    """Test getting a paginated list of stock movements."""
+    # Arrange: Create a product and add three movements
+    res_cat = client.post("/v1/categories/", json={"name": "Category Pagination"})
+    product_data = {
+        "name": "Producto Pag", "sku": "SKU-PAG", "category_id": res_cat.json()["id"],
+        "cost_price": 1, "sale_price": 2, "min_stock": 0, "max_stock": 10, "unit_of_measure": "u"
+    }
+    res_prod = client.post("/v1/products/", json=product_data)
+    product_id = res_prod.json()["id"]
+    # Movements are ordered by id desc, so the last one created is the first one returned
+    client.post("/v1/stock-movements/", json={"product_id": product_id, "movement_type": "ENTRADA", "quantity": 1}) # 3rd
+    client.post("/v1/stock-movements/", json={"product_id": product_id, "movement_type": "ENTRADA", "quantity": 2}) # 2nd
+    client.post("/v1/stock-movements/", json={"product_id": product_id, "movement_type": "ENTRADA", "quantity": 3}) # 1st
+
+    # Act: Get the second page with one item (skip=1, limit=1)
+    response = client.get("/v1/stock-movements/?skip=1&limit=1")
+
+    # Assert
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["quantity"] == 2 # Should be the second movement created
 
 
 def test_delete_stock_movement_reverts_stock(

@@ -2,6 +2,7 @@ from typing import Annotated, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.app.dependencies.stock_movement_use_cases import stock_movement_container
+from src.app.dependencies.common_filters import CommonFilterParams, get_common_filters
 from src.core.product.exceptions import ProductNotFound
 from src.core.stock_movements.exceptions import InsufficientStockError, StockMovementNotFound
 from src.schemas.stock_movement import (
@@ -40,9 +41,10 @@ def get_all_stock_movements(
         GetAllStockMovementsUseCase,
         Depends(stock_movement_container.get_all_stock_movements),
     ],
+    commons: Annotated[CommonFilterParams, Depends(get_common_filters)],
     product_id: Optional[int] = None,
 ):
-    movements = use_case.execute(product_id=product_id)
+    movements = use_case.execute(commons=commons, product_id=product_id)
     return movements
 
 

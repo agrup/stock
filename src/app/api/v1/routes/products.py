@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from src.app.dependencies.product_use_cases import (
     product_container,
 )
+from src.app.dependencies.common_filters import PaginationParams, get_pagination_params
 from src.core.product.exceptions import (
     ProductAlreadyExists,
     ProductNotFound,
@@ -45,11 +46,12 @@ def create_product(
 
 @router.get("/", response_model=List[ProductResponseSchema])
 def get_all_products(
+    commons: Annotated[PaginationParams, Depends(get_pagination_params)],
     use_case: Annotated[
         GetAllProductsUseCase, Depends(product_container.get_all_products)
     ],
 ):
-    products = use_case.execute()
+    products = use_case.execute(commons)
     return products
 
 

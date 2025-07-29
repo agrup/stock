@@ -42,6 +42,33 @@ back/
 └── README.md           # Este archivo
 ```
 
+```
+back/
+├── src/
+│   ├── app/                # Capa de presentación
+│   │   ├── api/           # Endpoints y rutas
+- Firebase project con Authentication y Firestore habilitados
+- Credenciales de servicio de Firebase
+│   │   │   ├── routes/    # Definición de rutas
+│   │   │   └── schemas/   # Esquemas de validación
+│   │   └── app_factory.py # Configuración de FastAPI
+│   ├── core/              # Lógica de negocio central
+│   │   └── auth.py        # Autenticación y autorización
+│   ├── domain/            # Entidades y reglas de negocio
+cd back
+│   ├── infrastructure/    # Implementaciones de infraestructura
+│   │   
+│   ├── repositories/      # Capa de acceso a datos
+│   │   
+│   ├── use_cases/         # Casos de uso
+│   │   
+│   └── main.py           # Punto de entrada
+├── tests/                # Tests unitarios y de integración
+├── .env.example         # Ejemplo de variables de entorno
+├── requirements.txt     # Dependencias del proyecto
+└── README.md           # Este archivo
+```
+
 ## ⚙️ Requisitos
 
 - Docker

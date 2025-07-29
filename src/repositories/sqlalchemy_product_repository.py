@@ -32,12 +32,14 @@ class SqlAlchemyProductRepository(ProductRepository):
             return None
         return Product.model_validate(product_model)
 
-    def get_all(self) -> List[Product]:
+    def get_all(self, skip: int = 0, limit: int = 100) -> List[Product]:
         product_models = (
             self.session.query(ProductModel)
             .options(
                 joinedload(ProductModel.category), joinedload(ProductModel.supplier)
             )
+            .offset(skip)
+            .limit(limit)
             .all()
         )
         return [Product.model_validate(product) for product in product_models]

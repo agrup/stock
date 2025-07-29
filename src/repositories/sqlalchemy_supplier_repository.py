@@ -31,11 +31,13 @@ class SqlAlchemySupplierRepository(SupplierRepository):
         model = self.session.query(SupplierModel).filter_by(name=name).first()
         return Supplier.model_validate(model) if model else None
 
-    def get_all(self) -> List[Supplier]:
+    def get_all(self, skip: int = 0, limit: int = 100) -> List[Supplier]:
         models = (
             self.session.query(SupplierModel)
             .options(joinedload(SupplierModel.products))
             .order_by(SupplierModel.id)
+            .offset(skip)
+            .limit(limit)
             .all()
         )
         return [Supplier.model_validate(model) for model in models]
