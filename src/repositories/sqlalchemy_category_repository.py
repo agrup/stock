@@ -1,8 +1,8 @@
-from typing import List, Optional
+from typing import List, Optional, Mapping, Any
 
 from sqlalchemy.orm import Session, joinedload
 
-from src.core.category.exceptions import CategoryInUseError
+from src.core.category.exceptions import CategoryInUseError, CategoryNotFound
 from src.domain.category import Category
 from src.interfaces.category_repository import CategoryRepository
 from src.repositories.models.category import CategoryModel
@@ -46,10 +46,11 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
         )
         return [Category.model_validate(category) for category in category_models]
 
-    def update(self, category_id: int, category_data: dict) -> Category:
-        category_model = (
-            self.session.query(CategoryModel).filter_by(id=category_id).one()
-        )
+    def update(self, category_id: int, category_data: Mapping[str, Any]) -> Category:
+        category_model = self.session.query(CategoryModel).filter_by(id=category_id).first()
+        if not category_model:
+            raise CategoryNotFound()
+
         for key, value in category_data.items():
             if value is not None:
                 setattr(category_model, key, value)
@@ -57,11 +58,12 @@ class SqlAlchemyCategoryRepository(CategoryRepository):
         return Category.model_validate(category_model)
 
     def delete(self, category_id: int) -> None:
-        # The existence check is done in the use case, but we need to fetch
-        # the object with its products to check for usage.
         category_model = self.session.query(CategoryModel).options(
             joinedload(CategoryModel.products)
-        ).filter_by(id=category_id).one()
+        ).filter_by(id=category_id).first()
+
+        if not category_model:
+            raise CategoryNotFound()
 
         if category_model.products:
             raise CategoryInUseError()

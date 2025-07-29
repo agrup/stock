@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from sqlalchemy.orm import Session, joinedload
+from src.core.product.exceptions import ProductNotFound
 
 from src.domain.product import Product
 from src.interfaces.product_repository import ProductRepository
@@ -54,12 +55,9 @@ class SqlAlchemyProductRepository(ProductRepository):
         return Product.model_validate(product_model)
 
     def update(self, product_id: int, product_data: dict) -> Product:
-        product_model = (
-            self.session.query(ProductModel)
-            .options(
-                joinedload(ProductModel.category), joinedload(ProductModel.supplier)
-            )
-            .filter_by(id=product_id).one())
+        product_model = self.session.query(ProductModel).filter_by(id=product_id).first()
+        if not product_model:
+            raise ProductNotFound()
 
         for key, value in product_data.items():
             if value is not None:
@@ -69,6 +67,8 @@ class SqlAlchemyProductRepository(ProductRepository):
         return Product.model_validate(product_model)
 
     def delete(self, product_id: int) -> None:
-        product_model = self.session.query(ProductModel).filter_by(id=product_id).one()
+        product_model = self.session.query(ProductModel).filter_by(id=product_id).first()
+        if not product_model:
+            raise ProductNotFound()
         self.session.delete(product_model)
         self.session.flush()

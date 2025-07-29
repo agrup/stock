@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from sqlalchemy.orm import Session, joinedload
 
-from src.core.suppliers.exceptions import SupplierInUseError
+from src.core.suppliers.exceptions import SupplierInUseError, SupplierNotFound
 from src.domain.supplier import Supplier
 from src.interfaces.supplier_repository import SupplierRepository
 from src.repositories.models.supplier import SupplierModel
@@ -41,7 +41,10 @@ class SqlAlchemySupplierRepository(SupplierRepository):
         return [Supplier.model_validate(model) for model in models]
 
     def update(self, supplier_id: int, data: dict) -> Supplier:
-        model = self.session.query(SupplierModel).filter_by(id=supplier_id).one()
+        model = self.session.query(SupplierModel).filter_by(id=supplier_id).first()
+        if not model:
+            raise SupplierNotFound()
+
         for key, value in data.items():
             if value is not None:
                 setattr(model, key, value)
@@ -51,7 +54,10 @@ class SqlAlchemySupplierRepository(SupplierRepository):
     def delete(self, supplier_id: int) -> None:
         model = self.session.query(SupplierModel).options(
             joinedload(SupplierModel.products)
-        ).filter_by(id=supplier_id).one()
+        ).filter_by(id=supplier_id).first()
+
+        if not model:
+            raise SupplierNotFound()
 
         if model.products:
             raise SupplierInUseError()
