@@ -11,6 +11,8 @@ from src.use_cases.create_product import CreateProductUseCase
 from src.use_cases.get_all_products import GetAllProductsUseCase
 from src.use_cases.get_product_by_id import GetProductByIdUseCase
 from src.use_cases.update_product import UpdateProductUseCase
+from src.use_cases.get_stock_valuation import GetStockValuationUseCase
+from src.use_cases.get_low_stock_products import GetLowStockProductsUseCase
 from src.use_cases.delete_product import DeleteProductUseCase
 
 
@@ -40,6 +42,12 @@ class ProductUseCasesContainer:
 
     def delete_product(self) -> DeleteProductUseCase:
         return DeleteProductUseCase(SqlAlchemyProductRepository(self._session))
+
+    def get_low_stock_products(self) -> GetLowStockProductsUseCase:
+        return GetLowStockProductsUseCase(SqlAlchemyProductRepository(self._session))
+
+    def get_stock_valuation(self) -> GetStockValuationUseCase:
+        return GetStockValuationUseCase(SqlAlchemyProductRepository(self._session))
 
 
 product_container = ProductUseCasesContainer()

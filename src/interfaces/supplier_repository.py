@@ -1,4 +1,4 @@
-from typing import List, Optional, Protocol
+from typing import List, Optional, Protocol, Mapping, Any
 
 from src.domain.supplier import Supplier
 
@@ -18,7 +18,7 @@ class SupplierRepository(Protocol):
     def get_all(self) -> List[Supplier]:
         ...
 
-    def update(self, supplier_id: int, data: dict) -> Supplier:
+    def update(self, supplier_id: int, data: Mapping[str, Any]) -> Supplier:
         ...
 
     def delete(self, supplier_id: int) -> None:

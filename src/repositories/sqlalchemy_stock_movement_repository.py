@@ -2,7 +2,6 @@ from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select
 
-from src.core.stock_movements.exceptions import StockMovementNotFound
 from src.domain.stock_movement import StockMovement
 from src.interfaces.stock_movement_repository import StockMovementRepository
 from src.repositories.models.stock_movement import StockMovementModel
@@ -41,8 +40,6 @@ class SqlAlchemyStockMovementRepository(StockMovementRepository):
         return StockMovement.model_validate(model) if model else None
 
     def delete(self, movement_id: int) -> None:
-        model = self.session.query(StockMovementModel).filter_by(id=movement_id).first()
-        if not model:
-            raise StockMovementNotFound()
+        model = self.session.query(StockMovementModel).filter_by(id=movement_id).one()
         self.session.delete(model)
         self.session.flush()

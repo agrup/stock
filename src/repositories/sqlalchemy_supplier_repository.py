@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Mapping, Any
 
 from sqlalchemy.orm import Session, joinedload
 
@@ -40,7 +40,7 @@ class SqlAlchemySupplierRepository(SupplierRepository):
         )
         return [Supplier.model_validate(model) for model in models]
 
-    def update(self, supplier_id: int, data: dict) -> Supplier:
+    def update(self, supplier_id: int, data: Mapping[str, Any]) -> Supplier:
         model = self.session.query(SupplierModel).filter_by(id=supplier_id).first()
         if not model:
             raise SupplierNotFound()

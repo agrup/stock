@@ -86,6 +86,8 @@ def override_product_use_cases(db_session):
         product_container.get_product_by_id: test_container.get_product_by_id,
         product_container.update_product: test_container.update_product,
         product_container.delete_product: test_container.delete_product,
+        product_container.get_low_stock_products: test_container.get_low_stock_products,
+        product_container.get_stock_valuation: test_container.get_stock_valuation,
     }
     app.dependency_overrides.update(overrides)
 

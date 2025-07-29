@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Mapping, Any
 
 from sqlalchemy.orm import Session, joinedload
 from src.core.product.exceptions import ProductNotFound
@@ -54,7 +54,7 @@ class SqlAlchemyProductRepository(ProductRepository):
             return None
         return Product.model_validate(product_model)
 
-    def update(self, product_id: int, product_data: dict) -> Product:
+    def update(self, product_id: int, product_data: Mapping[str, Any]) -> Product:
         product_model = self.session.query(ProductModel).filter_by(id=product_id).first()
         if not product_model:
             raise ProductNotFound()
@@ -72,3 +72,33 @@ class SqlAlchemyProductRepository(ProductRepository):
             raise ProductNotFound()
         self.session.delete(product_model)
         self.session.flush()
+
+    def get_low_stock(self) -> List[Product]:
+        product_models = (
+            self.session.query(ProductModel)
+            .options(
+                joinedload(ProductModel.category), joinedload(ProductModel.supplier)
+            )
+            .filter(ProductModel.current_stock <= ProductModel.min_stock)
+            .all()
+        )
+        return [Product.model_validate(product) for product in product_models]
+
+    def get_stock_valuation(self) -> dict:
+        products = self.get_all()
+        total_valuation = 0.0
+        product_valuations = []
+
+        for product in products:
+            valuation = product.current_stock * product.cost_price
+            total_valuation += valuation
+            product_valuations.append({
+                "product_id": product.id,
+                "product_name": product.name,
+                "sku": product.sku,
+                "current_stock": product.current_stock,
+                "cost_price": product.cost_price,
+                "valuation": valuation,
+            })
+
+        return {"total_valuation": total_valuation, "products": product_valuations}

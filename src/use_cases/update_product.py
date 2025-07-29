@@ -8,7 +8,7 @@ from src.domain.product import Product
 from src.interfaces.product_repository import ProductRepository
 from src.interfaces.category_repository import CategoryRepository
 from src.interfaces.supplier_repository import SupplierRepository
-
+from typing import Mapping, Any
 
 class UpdateProductUseCase:
     def __init__(
@@ -21,7 +21,7 @@ class UpdateProductUseCase:
         self.category_repo = category_repo
         self.supplier_repo = supplier_repo
 
-    def execute(self, product_id: int, update_data: dict) -> "Product":
+    def execute(self, product_id: int, update_data: Mapping[str, Any]) -> "Product":
         # 1. Verificar que el producto a actualizar exista
         product_to_update = self.product_repo.get_by_id(product_id)
         if not product_to_update:
